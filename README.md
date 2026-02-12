@@ -60,10 +60,10 @@
 
 ## Docker Installation
 
-### Build the image
+### Pull the image
 
 ```bash
-docker build -t bucketflow:latest .
+docker pull ghcr.io/ambyte/bucketflow:latest
 ```
 
 ### Run the container
@@ -75,7 +75,13 @@ docker run -d \
   -e ADMIN_PASSWORD=your-secure-password \
   -v bucketflow-data:/app/.data/storage \
   --restart unless-stopped \
-  bucketflow:latest
+  ghcr.io/ambyte/bucketflow:latest
+```
+
+### Build from source (optional)
+
+```bash
+docker build -t bucketflow:latest .
 ```
 
 ### Run with Docker Compose
