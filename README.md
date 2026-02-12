@@ -1,6 +1,13 @@
-# BucketFlow
+<h1 align="center">
+  <img src="app/assets/logo.png" alt="BucketFlow Logo" width="180">
+  <p>BucketFlow</p>
+</h1>
 
-**A modern, self-hosted S3-compatible storage file manager** built with Nuxt and Nuxt UI. Manage your cloud objects across AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean Spaces, and any S3-compatible service — all from a single, beautiful interface.
+**A modern, self-hosted S3-compatible storage file manager** built with Nuxt and Nuxt UI. Manage your cloud objects across AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean Spaces, and any S3-compatible service — all from a single, beautiful interface. One-command Docker deployment, role-based access, public sharing links, and an embeddable file viewer.
+
+<p align="center">
+  <img src="docs/images/buckets-and-files.png" alt="BucketFlow — buckets and files" width="800">
+</p>
 
 ---
 
@@ -20,23 +27,27 @@
 ### Using Docker (recommended)
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/your-org/bucketflow.git
    cd bucketflow
    ```
 
 2. **Create environment file**
+
    ```bash
    cp .env.example .env
    ```
 
 3. **Set admin password** (optional — auto-generated if omitted)
+
    ```env
    ADMIN_USERNAME=admin
    ADMIN_PASSWORD=your-secure-password
    ```
 
 4. **Run with Docker Compose**
+
    ```bash
    docker compose up -d
    ```
@@ -83,11 +94,11 @@ The Compose setup includes:
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ADMIN_USERNAME` | Initial admin username (when no users exist) | `admin` |
-| `ADMIN_PASSWORD` | Initial admin password (auto-generated if empty) | — |
-| `FRAME_ANCESTORS` | Content-Security-Policy `frame-ancestors` for embedding | `*` |
+| Variable          | Description                                             | Default |
+| ----------------- | ------------------------------------------------------- | ------- |
+| `ADMIN_USERNAME`  | Initial admin username (when no users exist)            | `admin` |
+| `ADMIN_PASSWORD`  | Initial admin password (auto-generated if empty)        | —       |
+| `FRAME_ANCESTORS` | Content-Security-Policy `frame-ancestors` for embedding | `*`     |
 
 ---
 
