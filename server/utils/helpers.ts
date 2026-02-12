@@ -8,6 +8,22 @@ export const slugSchema = z.string().min(1).regex(
   'Slug must contain only lowercase letters, numbers, hyphens and underscores. No leading or trailing hyphens.'
 )
 
+/** AWS S3 bucket naming rules: 3-63 chars, lowercase letters/numbers/hyphens/periods, must start and end with letter/number */
+export const bucketNameSchema = z.string()
+  .min(3, 'Bucket name must be at least 3 characters')
+  .max(63, 'Bucket name must be at most 63 characters')
+  .regex(/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/, 'Bucket name must use only lowercase letters, numbers, hyphens and periods; must start and end with a letter or number')
+  .refine(name => !name.includes('..'), 'Bucket name must not contain two adjacent periods')
+  .refine(name => !/^\d{1,3}(\.\d{1,3}){3}$/.test(name), 'Bucket name must not be formatted as an IP address')
+  .refine(name => !name.startsWith('xn--'), 'Bucket name must not start with xn--')
+  .refine(name => !name.startsWith('sthree-'), 'Bucket name must not start with sthree-')
+  .refine(name => !name.startsWith('amzn-s3-demo-'), 'Bucket name must not start with amzn-s3-demo-')
+  .refine(name => !name.endsWith('-s3alias'), 'Bucket name must not end with -s3alias')
+  .refine(name => !name.endsWith('--ol-s3'), 'Bucket name must not end with --ol-s3')
+  .refine(name => !name.endsWith('.mrap'), 'Bucket name must not end with .mrap')
+  .refine(name => !name.endsWith('--x-s3'), 'Bucket name must not end with --x-s3')
+  .refine(name => !name.endsWith('--table-s3'), 'Bucket name must not end with --table-s3')
+
 export function requireAuth(event: any, requiredRole?: string) {
   const auth = event.context.auth
 

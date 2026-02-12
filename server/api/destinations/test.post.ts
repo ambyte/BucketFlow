@@ -1,5 +1,5 @@
 
-import { S3Destination } from '~/types'
+import type { S3Destination } from '~/types'
 import { testS3Connection } from '../../utils/s3'
 
 export default defineEventHandler(async (event) => {

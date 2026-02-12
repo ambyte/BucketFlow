@@ -1,9 +1,9 @@
-import { createBucket } from '../../../utils/s3'
-import { requireAuth, requireS3Destination } from '../../../utils/helpers'
 import { z } from 'zod'
+import { createBucket } from '../../../utils/s3'
+import { requireAuth, requireS3Destination, validateBody, bucketNameSchema } from '../../../utils/helpers'
 
 const createBucketSchema = z.object({
-  bucketName: z.string().min(1)
+  bucketName: bucketNameSchema
 })
 
 export default defineEventHandler(async (event) => {

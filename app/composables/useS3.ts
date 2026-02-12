@@ -613,6 +613,36 @@ export const useS3 = (options: UseS3Options = {}) => {
     }
   }
 
+  const renameBucket = async (destinationId: string, oldBucketName: string, newBucketName: string): Promise<boolean> => {
+    if (isPublic) {
+      throw new Error('Rename bucket is not available in public mode')
+    }
+
+    try {
+      const query = new URLSearchParams({ id: destinationId })
+      await apiCall(`/api/s3/buckets/rename?${query}`, {
+        method: 'POST',
+        body: JSON.stringify({ oldBucketName, newBucketName })
+      })
+
+      useToast().add({
+        title: 'Bucket renamed',
+        description: `${oldBucketName} → ${newBucketName}`,
+        color: 'success'
+      })
+
+      return true
+    }
+    catch (error: any) {
+      useToast().add({
+        title: 'Failed to rename bucket',
+        description: error.message || 'Unknown error',
+        color: 'error'
+      })
+      return false
+    }
+  }
+
   return {
     currentDestinationId: readonly(currentDestinationId),
     currentSlug: readonly(currentSlug),
@@ -634,6 +664,7 @@ export const useS3 = (options: UseS3Options = {}) => {
     deleteFile,
     createFolder,
     createBucket,
+    renameBucket,
     getPreviewUrl,
     getFolderContentsCount,
     deleteFolder,

@@ -1,4 +1,4 @@
-import { S3Client, ListBucketsCommand, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, DeleteObjectCommand, DeleteObjectsCommand, CopyObjectCommand, HeadObjectCommand, CreateBucketCommand, type ListObjectsV2CommandInput } from '@aws-sdk/client-s3'
+import { S3Client, ListBucketsCommand, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, DeleteObjectCommand, DeleteObjectsCommand, CopyObjectCommand, HeadObjectCommand, CreateBucketCommand, DeleteBucketCommand, type ListObjectsV2CommandInput } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import type { FileItem, FolderItem, ListObjectsResult, S3Destination } from '../../app/types'
 
@@ -258,4 +258,37 @@ export async function renameFolder(destination: S3Destination, bucketName: strin
     }
   }
   return { copiedCount }
+}
+
+/** Copy object from one bucket to another (same or different) */
+export async function copyObjectCrossBucket(destination: S3Destination, sourceBucket: string, destBucket: string, sourceKey: string, destKey: string): Promise<void> {
+  const client = getS3Client(destination)
+  const command = new CopyObjectCommand({
+    Bucket: destBucket,
+    CopySource: encodeURI(`${sourceBucket}/${sourceKey}`),
+    Key: destKey
+  })
+  await client.send(command)
+}
+
+export async function deleteBucket(destination: S3Destination, bucketName: string): Promise<void> {
+  const client = getS3Client(destination)
+  const command = new DeleteBucketCommand({
+    Bucket: bucketName
+  })
+  await client.send(command)
+}
+
+/** Rename bucket: create new, copy all objects, delete old bucket. Returns new bucket name. */
+export async function renameBucket(destination: S3Destination, oldBucketName: string, newBucketName: string): Promise<void> {
+  const keys = await listAllKeysUnderPrefix(destination, oldBucketName, '')
+  await createBucket(destination, newBucketName)
+  for (const key of keys) {
+    await copyObjectCrossBucket(destination, oldBucketName, newBucketName, key, key)
+  }
+  for (let i = 0; i < keys.length; i += DELETE_BATCH_SIZE) {
+    const batch = keys.slice(i, i + DELETE_BATCH_SIZE)
+    await deleteObjects(destination, oldBucketName, batch)
+  }
+  await deleteBucket(destination, oldBucketName)
 }

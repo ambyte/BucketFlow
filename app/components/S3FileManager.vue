@@ -14,12 +14,20 @@
             <div v-if="isLoadingBuckets" class="p-2 text-sm text-muted">Loading...</div>
             <div v-else-if="availableBuckets.length === 0" class="p-2 text-sm text-muted">No buckets</div>
             <div v-else class="space-y-1">
-              <button v-for="bucket in availableBuckets" :key="bucket" @click="handleBucketClick(bucket)"
-                class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors hover:bg-elevated"
+              <div v-for="bucket in availableBuckets" :key="bucket"
+                class="group flex items-center gap-1 w-full rounded-md transition-colors"
                 :class="{ 'bg-accented': selectedBucketName === bucket }">
-                <UIcon name="i-heroicons-folder" class="w-4 h-4 text-primary" />
-                <span class="truncate text-default">{{ bucket }}</span>
-              </button>
+                <button @click="handleBucketClick(bucket)"
+                  class="flex-1 flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors hover:bg-elevated min-w-0">
+                  <UIcon name="i-heroicons-folder" class="w-4 h-4 text-primary shrink-0" />
+                  <span class="truncate text-default">{{ bucket }}</span>
+                  <UTooltip v-if="canRenameBucket" text="Rename bucket" class="ml-auto shrink-0">
+                    <UButton variant="ghost" color="neutral" icon="i-heroicons-pencil-square" size="xs"
+                      class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      @click.stop="handleRenameBucketClick(bucket)" />
+                  </UTooltip>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -97,12 +105,12 @@
                   {{ formatFileSize((row as any).Size) }}
                 </div>
               </button>
-              <div
-                class="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <template v-if="(row as any).isFolder">
                   <UTooltip v-if="effectiveIsEditor" text="Rename">
                     <UButton variant="ghost" color="neutral" icon="i-heroicons-pencil-square" size="md"
-                      class="cursor-pointer" @click.stop="handleRenameFolder({ name: (row as any).name, Prefix: (row as any).Prefix })" />
+                      class="cursor-pointer"
+                      @click.stop="handleRenameFolder({ name: (row as any).name, Prefix: (row as any).Prefix })" />
                   </UTooltip>
                   <UTooltip v-if="effectiveIsEditor" text="Delete">
                     <UButton variant="ghost" color="error" icon="i-heroicons-trash" size="md" class="cursor-pointer"
@@ -242,8 +250,8 @@
     <template #footer="{ close }">
       <UButton variant="outline" color="neutral" label="Cancel" :disabled="isDeletingFolder"
         @click="folderToDelete = null; close()" />
-      <UButton color="error" :loading="isDeletingFolder" :disabled="isCheckingFolder"
-        label="Delete" @click="confirmDeleteFolder" />
+      <UButton color="error" :loading="isDeletingFolder" :disabled="isCheckingFolder" label="Delete"
+        @click="confirmDeleteFolder" />
     </template>
   </UModal>
 
@@ -258,8 +266,8 @@
     <template #footer="{ close }">
       <UButton variant="outline" color="neutral" label="Cancel" :disabled="isRenamingFolder"
         @click="folderToRename = null; close()" />
-      <UButton color="primary" :loading="isRenamingFolder" :disabled="!renameFolderName.trim()"
-        label="Rename" @click="confirmRenameFolder" />
+      <UButton color="primary" :loading="isRenamingFolder" :disabled="!renameFolderName.trim()" label="Rename"
+        @click="confirmRenameFolder" />
     </template>
   </UModal>
 
@@ -274,8 +282,29 @@
     <template #footer="{ close }">
       <UButton variant="outline" color="neutral" label="Cancel" :disabled="isRenamingFile"
         @click="fileToRename = null; close()" />
-      <UButton color="primary" :loading="isRenamingFile" :disabled="!renameFileName.trim()"
-        label="Rename" @click="confirmRenameFile" />
+      <UButton color="primary" :loading="isRenamingFile" :disabled="!renameFileName.trim()" label="Rename"
+        @click="confirmRenameFile" />
+    </template>
+  </UModal>
+
+  <!-- Rename Bucket Modal (admin only) -->
+  <UModal v-model:open="showRenameBucket" title="Rename bucket" :ui="{ footer: 'justify-end gap-2' }">
+    <template #body>
+      <UFormField label="New bucket name" required
+        help="3-63 characters, lowercase letters, numbers, hyphens, periods. Must start and end with letter or number.">
+        <UInput v-model="renameBucketName" placeholder="Enter new bucket name" @keyup.enter="confirmRenameBucket"
+          class="w-full" />
+      </UFormField>
+      <p class="text-sm text-muted mt-2">
+        All objects will be copied to the new bucket. This may take a while for large buckets.
+      </p>
+    </template>
+    <template #footer="{ close }">
+      <UButton variant="outline" color="neutral" label="Cancel" :disabled="isRenamingBucket"
+        @click="bucketToRename = null; close()" />
+      <UButton color="primary" :loading="isRenamingBucket"
+        :disabled="!renameBucketName.trim() || renameBucketName.trim() === bucketToRename" label="Rename"
+        @click="confirmRenameBucket" />
     </template>
   </UModal>
 
@@ -401,8 +430,9 @@ const getPreviewUrl = async (key: string): Promise<string | null> => {
   return await s3.value.getPreviewUrl(key)
 }
 
-const { isEditor } = props.readOnly ? { isEditor: computed(() => false) } : useAuth()
+const { isEditor, isAdmin } = props.readOnly ? { isEditor: computed(() => false), isAdmin: computed(() => false) } : useAuth()
 const effectiveIsEditor = computed(() => !props.readOnly && isEditor.value)
+const canRenameBucket = computed(() => !!props.selectedDestinationId && isAdmin.value && !props.readOnly)
 
 // Internal state
 const selectedBucketName = ref<string | undefined>(props.selectedBucketName)
@@ -435,6 +465,11 @@ const showRenameFile = ref(false)
 const fileToRename = ref<FileItem | null>(null)
 const renameFileName = ref('')
 const isRenamingFile = ref(false)
+
+const showRenameBucket = ref(false)
+const bucketToRename = ref<string | null>(null)
+const renameBucketName = ref('')
+const isRenamingBucket = ref(false)
 
 const emit = defineEmits<{
   'bucket-click': [bucket: string]
@@ -732,6 +767,39 @@ const handleRenameFile = (file: FileItem) => {
   fileToRename.value = file
   renameFileName.value = file.name
   showRenameFile.value = true
+}
+
+const handleRenameBucketClick = (bucketName: string) => {
+  bucketToRename.value = bucketName
+  renameBucketName.value = bucketName
+  showRenameBucket.value = true
+}
+
+const confirmRenameBucket = async () => {
+  if (!bucketToRename.value || !props.selectedDestinationId || !renameBucketName.value.trim()) return
+  const oldName = bucketToRename.value
+  const newName = renameBucketName.value.trim()
+  if (newName === oldName) {
+    showRenameBucket.value = false
+    bucketToRename.value = null
+    return
+  }
+  isRenamingBucket.value = true
+  const success = await privateS3.renameBucket(props.selectedDestinationId, oldName, newName)
+  isRenamingBucket.value = false
+  if (success) {
+    showRenameBucket.value = false
+    bucketToRename.value = null
+    renameBucketName.value = ''
+    if (selectedBucketName.value === oldName) {
+      selectedBucketName.value = newName
+    }
+    const idx = availableBuckets.value.indexOf(oldName)
+    if (idx >= 0) {
+      availableBuckets.value = [...availableBuckets.value.slice(0, idx), newName, ...availableBuckets.value.slice(idx + 1)]
+    }
+    await handleBucketChange(newName)
+  }
 }
 
 const confirmRenameFile = async () => {
