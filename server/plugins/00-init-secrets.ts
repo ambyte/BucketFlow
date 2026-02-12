@@ -15,7 +15,6 @@ export default defineNitroPlugin(async () => {
       const jwtSecret = generateSecret(32);
       await saveSecrets({ jwtSecret });
       setJwtSecret(jwtSecret);
-      console.log("[Init] JWT Secret (generated):", jwtSecret);
     } else {
       setJwtSecret(secrets.jwtSecret);
     }

@@ -5,6 +5,8 @@ export default defineEventHandler(async (event) => {
   // Skip auth for non-API routes and public API endpoints
   const publicPaths = [
     '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/setup-status',
     '/api/health',
     '/api/public',
     '/_nuxt',

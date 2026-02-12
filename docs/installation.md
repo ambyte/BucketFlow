@@ -15,20 +15,12 @@
    cp .env.example .env
    ```
 
-3. Set admin password (optional — auto-generated if omitted):
-   ```env
-   ADMIN_USERNAME=admin
-   ADMIN_PASSWORD=your-secure-password
-   ```
-
-4. Run with Docker Compose:
+3. Run with Docker Compose:
    ```bash
    docker compose up -d
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000)
-
-> **Note:** On first launch, the admin user is created automatically. Save the credentials shown in the logs — the password cannot be recovered.
+4. Open [http://localhost:3000](http://localhost:3000). On first launch, you'll see a registration form to create the first admin account.
 
 ## Run with Docker Compose
 

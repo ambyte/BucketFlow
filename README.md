@@ -39,22 +39,13 @@
    cp .env.example .env
    ```
 
-3. **Set admin password** (optional — auto-generated if omitted)
-
-   ```env
-   ADMIN_USERNAME=admin
-   ADMIN_PASSWORD=your-secure-password
-   ```
-
-4. **Run with Docker Compose**
+3. **Run with Docker Compose**
 
    ```bash
    docker compose up -d
    ```
 
-5. **Open the app** — Navigate to [http://localhost:3000](http://localhost:3000)
-
-> **Note:** On first launch, the admin user is created automatically. Save the credentials shown in the logs — the password cannot be recovered.
+4. **Open the app** — Navigate to [http://localhost:3000](http://localhost:3000). On first launch, you'll see a registration form to create the first admin account.
 
 ---
 
@@ -72,7 +63,6 @@ docker pull ghcr.io/ambyte/bucketflow:latest
 docker run -d \
   --name bucketflow \
   -p 3000:3000 \
-  -e ADMIN_PASSWORD=your-secure-password \
   -v bucketflow-data:/app/.data/storage \
   --restart unless-stopped \
   ghcr.io/ambyte/bucketflow:latest
@@ -102,9 +92,9 @@ The Compose setup includes:
 
 | Variable          | Description                                             | Default |
 | ----------------- | ------------------------------------------------------- | ------- |
-| `ADMIN_USERNAME`  | Initial admin username (when no users exist)            | `admin` |
-| `ADMIN_PASSWORD`  | Initial admin password (auto-generated if empty)        | —       |
 | `FRAME_ANCESTORS` | Content-Security-Policy `frame-ancestors` for embedding | `*`     |
+
+> **Note:** On first launch, when no users exist, the app displays a registration form to create the first admin account.
 
 ---
 

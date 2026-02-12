@@ -4,6 +4,6 @@
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `ADMIN_USERNAME` | Initial admin username (when no users exist) | `admin` |
-| `ADMIN_PASSWORD` | Initial admin password (auto-generated if empty) | — |
 | `FRAME_ANCESTORS` | Content-Security-Policy `frame-ancestors` for embedding | `*` |
+
+> **Note:** On first launch, when no users exist, the app displays a registration form to create the first admin account.

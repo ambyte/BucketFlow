@@ -9,8 +9,6 @@ export default defineNuxtConfig({
   css: ["~/assets/css/main.css"],
 
   runtimeConfig: {
-    adminUsername: process.env.ADMIN_USERNAME || "admin",
-    adminPassword: process.env.ADMIN_PASSWORD,
     frameAncestors: process.env.FRAME_ANCESTORS?.trim() || "*",
   },
 

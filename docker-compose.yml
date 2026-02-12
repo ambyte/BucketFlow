@@ -9,8 +9,6 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - FRAME_ANCESTORS=${FRAME_ANCESTORS:-*}
     # volumes:
     # - bucketflow-data:/app/.data/storage
