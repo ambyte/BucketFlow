@@ -542,41 +542,24 @@ const handleBucketChange = async (bucketName: string | null) => {
   updateUrl()
 }
 
+/** Sync URL query params in public mode only (slug, path, theme). No-op in private mode. */
 const updateUrl = () => {
-  if (isUpdatingUrl.value) return
-  if ((!props.selectedDestinationId && !props.selectedDestinationSlug) || !selectedBucketName.value) return
-  if (props.selectedDestinationId && !props.selectedDestinationSlug) return
+  if (!props.selectedDestinationSlug || !selectedBucketName.value || isUpdatingUrl.value) return
 
   const currentQuery = route.query
-  const identifier = props.selectedDestinationId || props.selectedDestinationSlug
   const needsUpdate =
-    (props.selectedDestinationId && currentQuery.destinationId !== props.selectedDestinationId) ||
-    (props.selectedDestinationSlug && currentQuery.slug !== props.selectedDestinationSlug) ||
-    currentQuery.path !== currentPath.value
+    currentQuery.slug !== props.selectedDestinationSlug ||
+    (currentQuery.path ?? '') !== currentPath.value
 
   if (!needsUpdate) return
 
   isUpdatingUrl.value = true
+  const query: Record<string, string> = { slug: props.selectedDestinationSlug }
+  if (currentPath.value) query.path = currentPath.value
 
-  const query: Record<string, string> = {}
-
-  if (props.selectedDestinationId) {
-    query.destinationId = props.selectedDestinationId
-  }
-  if (props.selectedDestinationSlug) {
-    query.slug = props.selectedDestinationSlug
-  }
-
-  if (currentPath.value) {
-    query.path = currentPath.value
-  }
-
-  if (props.selectedDestinationSlug) {
-    const themeParams = ['primary', 'neutral', 'theme'] as const
-    for (const key of themeParams) {
-      const val = currentQuery[key] as string | undefined
-      if (val) query[key] = val
-    }
+  for (const key of ['primary', 'neutral', 'theme'] as const) {
+    const val = currentQuery[key] as string | undefined
+    if (val) query[key] = val
   }
 
   nextTick(() => {
