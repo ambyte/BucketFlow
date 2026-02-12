@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+.output
+.nuxt
+.nitro
+.cache
+dist
+
+# Data (don't copy local data into image)
+.data
+
+# Development & IDE
+.git
+.github
+.vscode
+.idea
+*.log
+.env
+.env.*
+!.env.example
+
+# Misc
+README.md
+Dockerfile
+docker-compose.yml
+.dockerignore
+*.md

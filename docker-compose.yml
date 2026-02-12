@@ -1,0 +1,33 @@
+services:
+  bucketflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bucketflow
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - FRAME_ANCESTORS=${FRAME_ANCESTORS:-*}
+    # volumes:
+    # - bucketflow-data:/app/.data/storage
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-q",
+          "-O",
+          "/dev/null",
+          "http://localhost:3000/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# volumes:
+#   bucketflow-data:
