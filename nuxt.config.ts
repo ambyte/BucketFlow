@@ -8,10 +8,6 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/main.css"],
 
-  runtimeConfig: {
-    frameAncestors: process.env.FRAME_ANCESTORS?.trim() || "*",
-  },
-
   nitro: {
     storage: {
       data: {
@@ -24,15 +20,14 @@ export default defineNuxtConfig({
   routeRules: {
     "/": { prerender: false },
     "/login": { ssr: false },
-    "/public": { ssr: false },
-    "/admin/**": { ssr: true },
-    "/api/**": { cors: true },
-    "/**": {
+    "/public": {
+      ssr: false,
       headers: {
-        "X-Frame-Options": "SAMEORIGIN",
-        "Content-Security-Policy": `frame-ancestors  'self' ${process.env.FRAME_ANCESTORS?.trim() || "*"}`,
+        "Content-Security-Policy": `frame-ancestors 'self' *;`,
       },
     },
+    "/admin/**": { ssr: true },
+    "/api/**": { cors: true },
   },
 
   colorMode: {
