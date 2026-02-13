@@ -1,154 +1,86 @@
 <template>
   <div class="w-full overflow-x-auto">
     <table class="w-full min-w-[600px]">
+      <colgroup>
+        <col style="width: 100%">
+        <col style="width: 8rem">
+        <col style="width: 8rem">
+        <col v-for="metaKey in metadataColumns" :key="metaKey" style="width: 1%; max-width: 400px">
+        <col style="width: 8rem">
+      </colgroup>
       <thead>
         <tr class="border-b border-accented">
           <th class="text-left py-3 px-4 font-medium">
-            <UButton
-              color="neutral"
-              variant="ghost"
-              label="Name"
-              :icon="getSortIcon('name')"
-              class="-mx-2.5"
-              @click="sortBy('name')"
-            />
+            <UButton color="neutral" variant="ghost" label="Name" :icon="getSortIcon('name')" class="-mx-2.5"
+              @click="sortBy('name')" />
           </th>
-          <th class="text-right w-48 py-3 px-4 font-medium">
-            <UButton
-              color="neutral"
-              variant="ghost"
-              label="Size"
-              :icon="getSortIcon('Size')"
-              class="-mx-2.5 ml-auto"
-              @click="sortBy('Size')"
-            />
+          <th class="text-right py-3 px-4 font-medium">
+            <UButton color="neutral" variant="ghost" label="Size" :icon="getSortIcon('Size')" class="-mx-2.5 ml-auto"
+              @click="sortBy('Size')" />
           </th>
           <th class="text-right w-32 py-3 px-4 font-medium">
-            <UButton
-              color="neutral"
-              variant="ghost"
-              label="Date"
-              :icon="getSortIcon('LastModified')"
-              class="-mx-2.5 ml-auto"
-              @click="sortBy('LastModified')"
-            />
+            <UButton color="neutral" variant="ghost" label="Date" :icon="getSortIcon('LastModified')"
+              class="-mx-2.5 ml-auto" @click="sortBy('LastModified')" />
           </th>
-          <th
-            v-for="metaKey in metadataColumns"
-            :key="metaKey"
-            class="text-left max-w-[200px] py-3 px-4 font-medium"
-          >
+          <th v-for="metaKey in metadataColumns" :key="metaKey" class="text-left py-3 px-4 font-medium"
+            style="max-width: 400px">
             {{ metaKey }}
           </th>
           <th class="text-right w-32 py-3 px-4" />
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="item in sortedData"
-          :key="item.name"
-          class="border-b border-accented/50 hover:bg-elevated/50 cursor-pointer transition-colors"
-          @click="handleRowClick(item)"
-        >
+        <tr v-for="item in sortedData" :key="item.name"
+          class="border-b border-accented/50 hover:bg-elevated/50 transition-colors" @click="handleRowClick(item)">
           <td class="py-2 px-4">
             <div class="flex items-center gap-2">
-              <UIcon
-                :name="item.isFolder ? 'i-heroicons-folder' : getFileIcon(item as FileItem)"
-                :class="['w-5 h-5 shrink-0', item.isFolder ? 'text-primary' : 'text-muted']"
-              />
+              <UIcon :name="item.isFolder ? 'i-heroicons-folder' : getFileIcon(item as FileItem)"
+                :class="['w-5 h-5 shrink-0', item.isFolder ? 'text-primary' : 'text-muted']" />
               <span class="flex-1 truncate text-highlighted">{{ item.name }}</span>
             </div>
           </td>
-          <td class="py-2 px-4 text-right w-48">
+          <td class="py-2 px-2 text-right">
             <span v-if="!item.isFolder" class="text-sm text-muted">{{ formatFileSize(item.Size) }}</span>
           </td>
-          <td class="py-2 px-4 text-right w-32">
+          <td class="py-2 px-2 text-right">
             <span v-if="!item.isFolder" class="text-muted text-sm">{{ formatDateShort(item.LastModified) }}</span>
           </td>
-          <td
-            v-for="metaKey in metadataColumns"
-            :key="metaKey"
-            class="py-2 px-4 text-left max-w-[200px]"
-          >
-            <span
-              v-if="!item.isFolder"
-              class="text-muted text-sm truncate block max-w-[200px]"
-              :title="item.Metadata?.[metaKey] ?? ''"
-            >
-              {{ item.Metadata?.[metaKey] ?? '-' }}
+          <td v-for="metaKey in metadataColumns" :key="metaKey" class="py-2 px-4 text-left" style="max-width: 400px">
+            <span v-if="!item.isFolder" class="text-muted text-sm truncate block max-w-[400px]"
+              :title="item.Metadata?.[metaKey] ?? ''">
+              {{ item.Metadata?.[metaKey] ?? '—' }}
             </span>
           </td>
           <td class="py-2 px-4 text-right w-32">
             <div class="flex items-center gap-1 justify-end">
               <UTooltip v-if="showMetadata && !item.isFolder" text="Metadata">
-                <UButton
-                  variant="ghost"
-                  color="neutral"
-                  icon="i-heroicons-tag"
-                  size="md"
-                  class="cursor-pointer"
-                  @click.stop="emit('metadata', item as FileItem)"
-                />
+                <UButton variant="ghost" color="neutral" icon="i-heroicons-tag" size="md" class="cursor-pointer"
+                  @click.stop="emit('metadata', item as FileItem)" />
               </UTooltip>
               <UTooltip v-if="isEditor && !item.isFolder" text="Rename">
-                <UButton
-                  variant="ghost"
-                  color="neutral"
-                  icon="i-heroicons-pencil-square"
-                  size="md"
-                  class="cursor-pointer"
-                  @click.stop="emit('renameFile', item as FileItem)"
-                />
+                <UButton variant="ghost" color="neutral" icon="i-heroicons-pencil-square" size="md"
+                  class="cursor-pointer" @click.stop="emit('renameFile', item as FileItem)" />
               </UTooltip>
               <UTooltip v-if="!item.isFolder" text="Download">
-                <UButton
-                  variant="ghost"
-                  color="neutral"
-                  icon="i-heroicons-arrow-down-tray"
-                  size="md"
-                  class="cursor-pointer"
-                  @click.stop="emit('download', item as FileItem)"
-                />
+                <UButton variant="ghost" color="neutral" icon="i-heroicons-arrow-down-tray" size="md"
+                  class="cursor-pointer" @click.stop="emit('download', item as FileItem)" />
               </UTooltip>
               <UTooltip v-if="!item.isFolder && canPreview(item as FileItem)" text="Preview">
-                <UButton
-                  variant="ghost"
-                  color="neutral"
-                  icon="i-heroicons-eye"
-                  size="md"
-                  class="cursor-pointer"
-                  @click.stop="emit('preview', item as FileItem)"
-                />
+                <UButton variant="ghost" color="neutral" icon="i-heroicons-eye" size="md" class="cursor-pointer"
+                  @click.stop="emit('preview', item as FileItem)" />
               </UTooltip>
               <UTooltip v-if="isEditor && item.isFolder" text="Rename">
-                <UButton
-                  variant="ghost"
-                  color="neutral"
-                  icon="i-heroicons-pencil-square"
-                  size="md"
+                <UButton variant="ghost" color="neutral" icon="i-heroicons-pencil-square" size="md"
                   class="cursor-pointer"
-                  @click.stop="emit('renameFolder', { name: item.name, Prefix: (item as any).Prefix })"
-                />
+                  @click.stop="emit('renameFolder', { name: item.name, Prefix: (item as any).Prefix })" />
               </UTooltip>
               <UTooltip v-if="isEditor && item.isFolder" text="Delete">
-                <UButton
-                  variant="ghost"
-                  color="error"
-                  icon="i-heroicons-trash"
-                  size="md"
-                  class="cursor-pointer"
-                  @click.stop="emit('deleteFolder', { name: item.name, Prefix: (item as any).Prefix })"
-                />
+                <UButton variant="ghost" color="error" icon="i-heroicons-trash" size="md" class="cursor-pointer"
+                  @click.stop="emit('deleteFolder', { name: item.name, Prefix: (item as any).Prefix })" />
               </UTooltip>
               <UTooltip v-if="isEditor && !item.isFolder" text="Delete">
-                <UButton
-                  variant="ghost"
-                  color="error"
-                  icon="i-heroicons-trash"
-                  size="md"
-                  class="cursor-pointer"
-                  @click.stop="emit('delete', item as FileItem)"
-                />
+                <UButton variant="ghost" color="error" icon="i-heroicons-trash" size="md" class="cursor-pointer"
+                  @click.stop="emit('delete', item as FileItem)" />
               </UTooltip>
             </div>
           </td>

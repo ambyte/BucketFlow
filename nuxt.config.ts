@@ -24,6 +24,7 @@ export default defineNuxtConfig({
   routeRules: {
     "/": { prerender: false },
     "/login": { ssr: false },
+    "/public": { ssr: false },
     "/admin/**": { ssr: true },
     "/api/**": { cors: true },
     "/**": {
