@@ -1,4 +1,4 @@
-import { getUsers, deleteUser } from '../../../utils/storage'
+import { getUsers, deleteUser, getDestinations, updateDestination } from '../../../utils/storage'
 import { requireAuth } from '../../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
@@ -46,6 +46,16 @@ export default defineEventHandler(async (event) => {
       statusCode: 404,
       statusMessage: 'User not found'
     })
+  }
+
+  // Remove user from allowedUserIds in all destinations
+  const destinations = await getDestinations()
+  for (const dest of destinations) {
+    if (dest.allowedUserIds?.includes(id)) {
+      await updateDestination(dest.id, {
+        allowedUserIds: dest.allowedUserIds.filter(uid => uid !== id)
+      })
+    }
   }
 
   return { success: true }

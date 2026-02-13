@@ -108,11 +108,11 @@
     </UModal>
 
     <!-- Edit User Modal -->
-    <UModal v-model:open="showEditUser" title="Edit User" description="Change user password">
+    <UModal v-model:open="showEditUser" title="Edit User" description="Change user name and password">
       <template #body>
         <UForm :state="editForm" @submit="handleUpdateUser" class="space-y-4">
-          <UFormField label="Username" name="username">
-            <UInput v-model="editForm.username" placeholder="Username" class="w-full" disabled />
+          <UFormField label="Username" name="username" required>
+            <UInput v-model="editForm.username" placeholder="Enter username" class="w-full" autocomplete="username" />
           </UFormField>
 
           <UFormField label="New Password" name="password">
@@ -187,6 +187,7 @@ const isCreateFormValid = computed(() => {
 })
 
 const isEditFormValid = computed(() => {
+  if (editForm.username.trim().length < 3) return false
   const hasPassword = editForm.password.length > 0
   const hasConfirm = editForm.passwordConfirm.length > 0
   if (hasPassword || hasConfirm) {
@@ -293,7 +294,9 @@ const handleUpdateUser = async () => {
   isUpdatingUser.value = true
 
   try {
-    const body: { password?: string } = {}
+    const body: { username?: string; password?: string } = {
+      username: editForm.username.trim()
+    }
     if (editForm.password) {
       body.password = editForm.password
     }
