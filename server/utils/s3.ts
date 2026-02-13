@@ -2,6 +2,41 @@ import { S3Client, ListBucketsCommand, ListObjectsV2Command, GetObjectCommand, P
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import type { FileItem, FolderItem, ListObjectsResult, S3Destination } from '../../app/types'
 
+const METADATA_B64_PREFIX = 'b64:'
+
+/** S3 x-amz-meta-* headers allow only US-ASCII. Encode non-ASCII values as Base64. */
+export function encodeMetadataForS3(metadata: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {}
+  for (const [k, v] of Object.entries(metadata)) {
+    if (typeof v !== 'string') continue
+    if (/[^\x00-\x7F]/.test(v)) {
+      result[k] = METADATA_B64_PREFIX + Buffer.from(v, 'utf8').toString('base64')
+    } else {
+      result[k] = v
+    }
+  }
+  return result
+}
+
+/** Decode metadata values that were Base64-encoded for S3 headers. */
+export function decodeMetadataFromS3(metadata: Record<string, string> | undefined): Record<string, string> {
+  if (!metadata) return {}
+  const result: Record<string, string> = {}
+  for (const [k, v] of Object.entries(metadata)) {
+    if (typeof v !== 'string') continue
+    if (v.startsWith(METADATA_B64_PREFIX)) {
+      try {
+        result[k] = Buffer.from(v.slice(METADATA_B64_PREFIX.length), 'base64').toString('utf8')
+      } catch {
+        result[k] = v
+      }
+    } else {
+      result[k] = v
+    }
+  }
+  return result
+}
+
 let s3Client: S3Client | null = null
 let currentConfig: S3Destination | null = null
 
@@ -111,13 +146,7 @@ export async function listObjects(destination: S3Destination, bucketName: string
         if (metadataColumns.length > 0) {
           try {
             const head = await getObjectMetadata(destination, bucketName, key)
-            const metadata: Record<string, string> = {}
-            if (head.Metadata) {
-              for (const [k, v] of Object.entries(head.Metadata)) {
-                if (typeof v === 'string') metadata[k] = v
-              }
-            }
-            file.Metadata = metadata
+            file.Metadata = decodeMetadataFromS3(head.Metadata as Record<string, string>)
           }
           catch {
             file.Metadata = {}
@@ -252,11 +281,12 @@ export async function copyObject(destination: S3Destination, bucketName: string,
 /** Copy object to itself with new user metadata (updates metadata without re-uploading content) */
 export async function copyObjectWithMetadata(destination: S3Destination, bucketName: string, key: string, metadata: Record<string, string>): Promise<void> {
   const client = getS3Client(destination)
+  const encoded = encodeMetadataForS3(metadata)
   const command = new CopyObjectCommand({
     Bucket: bucketName,
     CopySource: encodeURI(`${bucketName}/${key}`),
     Key: key,
-    Metadata: metadata,
+    Metadata: encoded,
     MetadataDirective: 'REPLACE'
   })
   await client.send(command)

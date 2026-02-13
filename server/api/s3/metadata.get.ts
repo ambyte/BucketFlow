@@ -1,4 +1,4 @@
-import { getObjectMetadata } from '../../utils/s3'
+import { getObjectMetadata, decodeMetadataFromS3 } from '../../utils/s3'
 import { requireAuth, requireS3Destination, ensureBucketAllowed } from '../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
@@ -20,13 +20,7 @@ export default defineEventHandler(async (event) => {
   ensureBucketAllowed(destination, bucketName)
 
   const head = await getObjectMetadata(destination, bucketName, key)
-
-  const metadata: Record<string, string> = {}
-  if (head.Metadata) {
-    for (const [k, v] of Object.entries(head.Metadata)) {
-      if (typeof v === 'string') metadata[k] = v
-    }
-  }
+  const metadata = decodeMetadataFromS3(head.Metadata as Record<string, string>)
 
   return {
     metadata,
