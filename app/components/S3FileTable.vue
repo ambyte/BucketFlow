@@ -3,9 +3,9 @@
     <table class="w-full min-w-[600px]">
       <colgroup>
         <col style="width: 100%">
-        <col style="width: 8rem">
-        <col style="width: 8rem">
         <col v-for="metaKey in metadataColumns" :key="metaKey" style="width: 1%; max-width: 400px">
+        <col style="width: 8rem">
+        <col style="width: 8rem">
         <col style="width: 8rem">
       </colgroup>
       <thead>
@@ -14,6 +14,10 @@
             <UButton color="neutral" variant="ghost" label="Name" :icon="getSortIcon('name')" class="-mx-2.5"
               @click="sortBy('name')" />
           </th>
+          <th v-for="metaKey in metadataColumns" :key="metaKey" class="text-left py-3 px-4 font-medium"
+            style="max-width: 400px">
+            {{ metaKey.charAt(0).toUpperCase() + metaKey.slice(1) }}
+          </th>
           <th class="text-right py-3 px-4 font-medium">
             <UButton color="neutral" variant="ghost" label="Size" :icon="getSortIcon('Size')" class="-mx-2.5 ml-auto"
               @click="sortBy('Size')" />
@@ -21,10 +25,6 @@
           <th class="text-right w-32 py-3 px-4 font-medium">
             <UButton color="neutral" variant="ghost" label="Date" :icon="getSortIcon('LastModified')"
               class="-mx-2.5 ml-auto" @click="sortBy('LastModified')" />
-          </th>
-          <th v-for="metaKey in metadataColumns" :key="metaKey" class="text-left py-3 px-4 font-medium"
-            style="max-width: 400px">
-            {{ metaKey }}
           </th>
           <th class="text-right w-32 py-3 px-4" />
         </tr>
@@ -39,17 +39,17 @@
               <span class="flex-1 truncate text-highlighted">{{ item.name }}</span>
             </div>
           </td>
-          <td class="py-2 px-2 text-right">
-            <span v-if="!item.isFolder" class="text-sm text-muted">{{ formatFileSize(item.Size) }}</span>
-          </td>
-          <td class="py-2 px-2 text-right">
-            <span v-if="!item.isFolder" class="text-muted text-sm">{{ formatDateShort(item.LastModified) }}</span>
-          </td>
           <td v-for="metaKey in metadataColumns" :key="metaKey" class="py-2 px-4 text-left" style="max-width: 400px">
             <span v-if="!item.isFolder" class="text-muted text-sm truncate block max-w-[400px]"
               :title="item.Metadata?.[metaKey] ?? ''">
               {{ item.Metadata?.[metaKey] ?? '—' }}
             </span>
+          </td>
+          <td class="py-2 px-2 text-right">
+            <span v-if="!item.isFolder" class="text-sm text-muted">{{ formatFileSize(item.Size) }}</span>
+          </td>
+          <td class="py-2 px-2 text-right">
+            <span v-if="!item.isFolder" class="text-muted text-sm">{{ formatDateShort(item.LastModified) }}</span>
           </td>
           <td class="py-2 px-4 text-right w-32">
             <div class="flex items-center gap-1 justify-end">

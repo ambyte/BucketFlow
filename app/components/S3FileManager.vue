@@ -857,6 +857,10 @@ const saveMetadata = async () => {
   if (success) {
     showMetadata.value = false
     metadataItem.value = null
+    const identifier = props.selectedDestinationSlug || props.selectedDestinationId
+    if (identifier && selectedBucketName.value) {
+      await fetchFiles(identifier, selectedBucketName.value, currentPath.value)
+    }
   }
 }
 
