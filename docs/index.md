@@ -4,6 +4,8 @@ A modern, self-hosted S3-compatible storage file manager built with Nuxt and Nux
 
 ![Buckets and Files view](images/buckets-and-files.png)
 
+![Destinations](images/destinations.png) ![Users](images/users.png) ![Public view](images/public-view.png)
+
 ---
 
 ## Table of Contents
@@ -16,5 +18,4 @@ A modern, self-hosted S3-compatible storage file manager built with Nuxt and Nux
 - [Public Sharing](public-sharing.md)
 - [Embeddable Viewer](embeddable-viewer.md)
 - [Installation](installation.md)
-- [Environment Variables](environment-variables.md)
 - [Project Structure](project-structure.md)

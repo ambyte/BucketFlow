@@ -4,7 +4,7 @@
 
 Admins manage users in **Admin Panel → Users**. Only **Editor** users can be created via the UI; the admin account is created on first launch.
 
-![Create new user](images/create-new-user.png)
+![User Management](images/users.png)
 
 ## Creating an Editor
 
@@ -14,6 +14,8 @@ Admins manage users in **Admin Panel → Users**. Only **Editor** users can be c
 4. Click **Create User**
 
 ## Managing Users
+
+![Update user](images/update-user.png)
 
 - **Edit** — Change password
 - **Delete** — Remove user (cannot delete yourself)

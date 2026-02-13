@@ -9,15 +9,13 @@
   <img src="docs/images/buckets-and-files.png" alt="BucketFlow — buckets and files" width="800">
 </p>
 
----
-
 ## Features
 
 - **Multi-provider support** — Connect multiple S3-compatible destinations (AWS S3, R2, MinIO, Wasabi, Spaces, etc.)
 - **Role-based access** — Admin and Editor roles with per-destination user permissions
 - **Public sharing** — Generate shareable read-only links for specific destinations and buckets
 - **Embeddable viewer** — Embed the file browser via iframe with customizable themes (light/dark, colors)
-- **Full CRUD operations** — Browse, upload, download, delete, create folders, and rename files
+- **Full CRUD operations** — Browse, upload, download, delete, create folders, rename files, edit metadata
 - **Secure by design** — JWT authentication, bcrypt password hashing, credential isolation between roles
 
 ---
@@ -33,19 +31,13 @@
    cd bucketflow
    ```
 
-2. **Create environment file**
-
-   ```bash
-   cp .env.example .env
-   ```
-
-3. **Run with Docker Compose**
+2. **Run with Docker Compose**
 
    ```bash
    docker compose up -d
    ```
 
-4. **Open the app** — Navigate to [http://localhost:3000](http://localhost:3000). On first launch, you'll see a registration form to create the first admin account.
+3. **Open the app** — Navigate to [http://localhost:3000](http://localhost:3000). On first launch, you'll see a registration form to create the first admin account.
 
 ---
 
@@ -85,16 +77,6 @@ The Compose setup includes:
 - Auto-restart policy
 - Persistent volume for user data and S3 configurations
 - Health check on `/api/health`
-
----
-
-## Environment Variables
-
-| Variable          | Description                                             | Default |
-| ----------------- | ------------------------------------------------------- | ------- |
-| `FRAME_ANCESTORS` | Content-Security-Policy `frame-ancestors` for embedding | `*`     |
-
-> **Note:** On first launch, when no users exist, the app displays a registration form to create the first admin account.
 
 ---
 

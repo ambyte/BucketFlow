@@ -15,17 +15,20 @@ The main file manager appears on the home page after login. Select a destination
 
 ## File Operations (Editors & Admins)
 
-| Operation | How |
-|-----------|-----|
-| **Browse** | Click folders or use breadcrumbs |
-| **Upload** | "Upload file" button or drag-and-drop |
-| **Download** | Download button on each file |
-| **Preview** | Double-click images, PDFs, text files (inline preview) |
-| **Create folder** | "New folder" button |
-| **Rename file** | Pencil icon on file (grid/list) |
-| **Rename folder** | Pencil icon on folder |
-| **Delete file** | Trash icon, with confirmation |
-| **Delete folder** | Trash icon, shows item count before delete |
+| Operation         | Purpose                                  |
+| ----------------- | ---------------------------------------- |
+| **Browse**        | Navigate folders and files               |
+| **Upload**        | Upload files to storage                  |
+| **Download**      | Save file locally                        |
+| **Preview**       | View file in browser (images, PDF, text) |
+| **Create folder** | Create new folder                        |
+| **Rename file**   | Change file name                         |
+| **Rename folder** | Change folder name                       |
+| **Delete file**   | Remove file                              |
+| **Delete folder** | Remove folder                            |
+| **Edit metadata** | Set user defined metadata                |
+
+![Edit file metadata](images/files-edit-metadata.png)
 
 ## Bucket Operations (Admin only)
 

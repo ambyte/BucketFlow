@@ -4,7 +4,7 @@
 
 Admins configure S3 destinations in **Admin Panel → S3 Configuration**. Each destination represents a connection to an S3-compatible service.
 
-![Destination list](images/destination-list.png)
+![Destinations](images/destinations.png)
 
 ## Adding a Destination
 
@@ -19,13 +19,14 @@ Admins configure S3 destinations in **Admin Panel → S3 Configuration**. Each d
 | **Access Key ID** | S3 access key |
 | **Secret Access Key** | S3 secret key |
 | **Buckets** | Optional space-separated list to restrict to specific buckets |
+| **Metadata columns** | Space-separated metadata key names (e.g. `description author project`) to display as columns in the file table; S3 object metadata will be shown for these keys |
 | **Region** | e.g. `us-east-1` |
 | **Endpoint** | S3 endpoint URL (e.g. `https://s3.amazonaws.com`) |
 | **Force Path Style** | Enable for MinIO and similar providers |
 | **Allowed Users** | Select editor users who can access this destination (empty = admin only) |
 | **Allowed anonymous access** | Enable public read-only access via shareable link |
 
-![Destination edit form](images/destination-edit.png)
+![Update destination form](images/update-destination.png)
 
 ## Destination Options
 

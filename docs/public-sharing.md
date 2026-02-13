@@ -4,6 +4,8 @@
 
 When a destination has **Allowed anonymous access** enabled, admins can generate a public link.
 
+![Generate public link](images/public-link-generate.png)
+
 ## Getting the Link
 
 1. Select a destination with public access
@@ -22,6 +24,8 @@ https://your-domain.com/public?slug=your-destination-slug&primary=emerald&neutra
 | `primary` | Nuxt UI primary color |
 | `neutral` | Nuxt UI neutral color |
 | `theme` | `light` or `dark` |
+
+![Public sharing view](images/public-view.png)
 
 ## Public Access Limitations
 
