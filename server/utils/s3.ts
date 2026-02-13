@@ -92,16 +92,40 @@ export async function listObjects(destination: S3Destination, bucketName: string
   const command = new ListObjectsV2Command(params)
   const response = await client.send(command)
 
-  const files: FileItem[] = (response.Contents || [])
-    .filter(obj => obj.Key !== prefix)
-    .map(obj => ({
-      Key: obj.Key || '',
-      Size: obj.Size || 0,
-      LastModified: obj.LastModified || new Date(),
-      ETag: obj.ETag || '',
-      StorageClass: obj.StorageClass || 'STANDARD',
-      name: obj.Key?.replace(prefix, '').replace(/\/$/, '') || ''
-    }))
+  const metadataColumns = destination.metadataColumns?.filter(k => k?.trim()) || []
+
+  const files: FileItem[] = await Promise.all(
+    (response.Contents || [])
+      .filter(obj => obj.Key !== prefix)
+      .map(async (obj) => {
+        const key = obj.Key || ''
+        const name = key.replace(prefix, '').replace(/\/$/, '') || ''
+        const file: FileItem = {
+          Key: key,
+          Size: obj.Size || 0,
+          LastModified: obj.LastModified || new Date(),
+          ETag: obj.ETag || '',
+          StorageClass: obj.StorageClass || 'STANDARD',
+          name
+        }
+        if (metadataColumns.length > 0) {
+          try {
+            const head = await getObjectMetadata(destination, bucketName, key)
+            const metadata: Record<string, string> = {}
+            if (head.Metadata) {
+              for (const [k, v] of Object.entries(head.Metadata)) {
+                if (typeof v === 'string') metadata[k] = v
+              }
+            }
+            file.Metadata = metadata
+          }
+          catch {
+            file.Metadata = {}
+          }
+        }
+        return file
+      })
+  )
 
   const folders: FolderItem[] = (response.CommonPrefixes || [])
     .map(commonPrefix => ({
@@ -112,7 +136,8 @@ export async function listObjects(destination: S3Destination, bucketName: string
   return {
     files,
     folders,
-    commonPrefixes: response.CommonPrefixes?.map(p => p.Prefix || '') || []
+    commonPrefixes: response.CommonPrefixes?.map(p => p.Prefix || '') || [],
+    metadataColumns: metadataColumns.length > 0 ? metadataColumns : undefined
   }
 }
 
@@ -220,6 +245,19 @@ export async function copyObject(destination: S3Destination, bucketName: string,
     Bucket: bucketName,
     CopySource: encodeURI(`${bucketName}/${sourceKey}`),
     Key: destKey
+  })
+  await client.send(command)
+}
+
+/** Copy object to itself with new user metadata (updates metadata without re-uploading content) */
+export async function copyObjectWithMetadata(destination: S3Destination, bucketName: string, key: string, metadata: Record<string, string>): Promise<void> {
+  const client = getS3Client(destination)
+  const command = new CopyObjectCommand({
+    Bucket: bucketName,
+    CopySource: encodeURI(`${bucketName}/${key}`),
+    Key: key,
+    Metadata: metadata,
+    MetadataDirective: 'REPLACE'
   })
   await client.send(command)
 }

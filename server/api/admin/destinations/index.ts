@@ -13,7 +13,8 @@ const createDestinationSchema = z.object({
   bucketNames: z.array(z.string().min(1)).default([]),
   forcePathStyle: z.boolean().optional(),
   allowPublicAccess: z.boolean().optional(),
-  allowedUserIds: z.array(z.string()).default([])
+  allowedUserIds: z.array(z.string()).default([]),
+  metadataColumns: z.array(z.string().min(1)).optional()
 })
 
 export default defineEventHandler(async (event) => {

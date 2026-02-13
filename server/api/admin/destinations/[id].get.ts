@@ -15,6 +15,7 @@ function destinationToResponse(destination: S3Destination) {
     forcePathStyle: destination.forcePathStyle,
     allowPublicAccess: destination.allowPublicAccess,
     allowedUserIds: destination.allowedUserIds,
+    metadataColumns: destination.metadataColumns ?? [],
     createdAt: destination.createdAt,
     updatedAt: destination.updatedAt
   }

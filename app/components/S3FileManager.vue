@@ -86,10 +86,12 @@
 
           <!-- List View -->
           <div v-else-if="viewMode === 'list' && tableRows.length > 0">
-            <S3FileTable :data="tableRows" :is-editor="effectiveIsEditor" @select="handleSelect"
-              @double-click="handleDoubleClick" @download="handleDownload" @preview="handlePreview"
-              @delete="handleDelete" @delete-folder="handleDeleteFolder" @rename-folder="handleRenameFolder"
-              @rename-file="handleRenameFile" />
+            <S3FileTable :data="tableRows" :is-editor="effectiveIsEditor" :show-metadata="!isPublicMode && effectiveIsEditor"
+              :metadata-columns="[...metadataColumns]"
+              @select="handleSelect" @double-click="handleDoubleClick" @download="handleDownload"
+              @preview="handlePreview" @delete="handleDelete" @delete-folder="handleDeleteFolder"
+              @rename-folder="handleRenameFolder" @rename-file="handleRenameFile"
+              @metadata="handleMetadata" />
           </div>
 
           <!-- Grid View -->
@@ -118,6 +120,11 @@
                   </UTooltip>
                 </template>
                 <template v-else>
+                  <UTooltip text="Metadata">
+                    <UButton variant="ghost" color="neutral" icon="i-heroicons-tag" size="md"
+                      class="cursor-pointer"
+                      @click.stop="handleMetadata(row as unknown as FileItem)" />
+                  </UTooltip>
                   <UTooltip v-if="effectiveIsEditor" text="Rename">
                     <UButton variant="ghost" color="neutral" icon="i-heroicons-pencil-square" size="md"
                       class="cursor-pointer" @click.stop="handleRenameFile(row as unknown as FileItem)" />
@@ -308,6 +315,36 @@
     </template>
   </UModal>
 
+  <!-- Metadata Modal -->
+  <UModal v-model:open="showMetadata" :title="metadataItem ? `Metadata: ${metadataItem.name}` : 'File metadata'" :ui="{ content: 'max-w-xl', footer: 'justify-end gap-2' }">
+    <template #body>
+      <div v-if="metadataLoading" class="flex items-center gap-2 py-4">
+        <UIcon name="i-heroicons-arrow-path" class="w-5 h-5 animate-spin text-primary" />
+        <span class="text-muted">Loading metadata...</span>
+      </div>
+      <div v-else class="space-y-3">
+        <p class="text-sm text-muted">User-defined metadata (key-value pairs). Keys and values are stored with the file in S3.</p>
+        <div v-for="(entry, index) in metadataEntries" :key="index" class="flex gap-2 items-center">
+          <UInput v-model="entry.key" placeholder="Key (e.g. description)" class="flex-1"
+            :disabled="metadataReadOnly" />
+          <UInput v-model="entry.value" placeholder="Value" class="flex-1"
+            :disabled="metadataReadOnly" />
+          <UButton v-if="!metadataReadOnly" variant="ghost" color="error" icon="i-heroicons-trash"
+            size="sm" @click="removeMetadataEntry(index)" />
+        </div>
+        <UButton v-if="!metadataReadOnly" variant="outline" color="neutral" size="sm"
+          icon="i-heroicons-plus" label="Add entry" @click="addMetadataEntry" />
+      </div>
+    </template>
+    <template #footer>
+      <UButton variant="outline" color="neutral" label="Close"
+        :disabled="metadataSaving"
+        @click="closeMetadata" />
+      <UButton v-if="!metadataReadOnly" color="primary" label="Save" :loading="metadataSaving"
+        @click="saveMetadata" />
+    </template>
+  </UModal>
+
   <!-- Preview Modal -->
   <UModal v-model:open="showPreview" :title="previewItem?.name" :ui="{ content: 'max-w-4xl' }">
     <template #body>
@@ -372,6 +409,7 @@ const s3 = computed(() => isPublicMode.value ? publicS3 : privateS3)
 const currentPath = computed(() => s3.value.currentPath.value)
 const files = computed(() => s3.value.files.value)
 const folders = computed(() => s3.value.folders.value)
+const metadataColumns = computed(() => s3.value.metadataColumns.value || [])
 const isLoading = computed(() => s3.value.isLoading.value)
 const uploadProgress = computed(() => isPublicMode.value ? [] : s3.value.uploadProgress.value)
 
@@ -430,6 +468,16 @@ const getPreviewUrl = async (key: string): Promise<string | null> => {
   return await s3.value.getPreviewUrl(key)
 }
 
+const getObjectMetadata = async (key: string) => {
+  if (isPublicMode.value) return null
+  return await s3.value.getObjectMetadata(key)
+}
+
+const updateObjectMetadata = async (key: string, metadata: Record<string, string>) => {
+  if (isPublicMode.value || props.readOnly) return false
+  return await s3.value.updateObjectMetadata(key, metadata)
+}
+
 const { isEditor, isAdmin } = props.readOnly ? { isEditor: computed(() => false), isAdmin: computed(() => false) } : useAuth()
 const effectiveIsEditor = computed(() => !props.readOnly && isEditor.value)
 const canRenameBucket = computed(() => !!props.selectedDestinationId && isAdmin.value && !props.readOnly)
@@ -470,6 +518,13 @@ const showRenameBucket = ref(false)
 const bucketToRename = ref<string | null>(null)
 const renameBucketName = ref('')
 const isRenamingBucket = ref(false)
+
+const showMetadata = ref(false)
+const metadataItem = ref<FileItem | null>(null)
+const metadataEntries = ref<{ key: string; value: string }[]>([])
+const metadataLoading = ref(false)
+const metadataSaving = ref(false)
+const metadataReadOnly = computed(() => isPublicMode.value || props.readOnly)
 
 const emit = defineEmits<{
   'bucket-click': [bucket: string]
@@ -616,6 +671,13 @@ const handleBreadcrumbClick = async (index: number) => {
   updateUrl()
 }
 
+watch(showMetadata, (open) => {
+  if (!open) {
+    metadataItem.value = null
+    metadataEntries.value = []
+  }
+})
+
 watch(selectedBucketName, (newBucket) => {
   emit('update:selected-bucket-name', newBucket)
 })
@@ -750,6 +812,58 @@ const handleRenameFile = (file: FileItem) => {
   fileToRename.value = file
   renameFileName.value = file.name
   showRenameFile.value = true
+}
+
+const handleMetadata = async (file: FileItem) => {
+  if (isPublicMode.value) return
+  metadataItem.value = file
+  showMetadata.value = true
+  metadataEntries.value = []
+  metadataLoading.value = true
+  try {
+    const key = currentPath.value + file.name
+    const result = await getObjectMetadata(key)
+    if (result?.metadata) {
+      metadataEntries.value = Object.entries(result.metadata).map(([key, value]) => ({ key, value }))
+    }
+    if (metadataEntries.value.length === 0) {
+      metadataEntries.value = [{ key: '', value: '' }]
+    }
+  }
+  finally {
+    metadataLoading.value = false
+  }
+}
+
+const addMetadataEntry = () => {
+  metadataEntries.value = [...metadataEntries.value, { key: '', value: '' }]
+}
+
+const removeMetadataEntry = (index: number) => {
+  metadataEntries.value = metadataEntries.value.filter((_, i) => i !== index)
+}
+
+const saveMetadata = async () => {
+  if (!metadataItem.value || metadataSaving.value) return
+  const metadata: Record<string, string> = {}
+  for (const entry of metadataEntries.value) {
+    const k = entry.key.trim()
+    if (k) metadata[k] = entry.value
+  }
+  const key = currentPath.value + metadataItem.value.name
+  metadataSaving.value = true
+  const success = await updateObjectMetadata(key, metadata)
+  metadataSaving.value = false
+  if (success) {
+    showMetadata.value = false
+    metadataItem.value = null
+  }
+}
+
+const closeMetadata = () => {
+  showMetadata.value = false
+  metadataItem.value = null
+  metadataEntries.value = []
 }
 
 const handleRenameBucketClick = (bucketName: string) => {

@@ -13,7 +13,8 @@ const updateDestinationSchema = z.object({
   bucketNames: z.array(z.string().min(1)).optional(),
   forcePathStyle: z.boolean().optional(),
   allowPublicAccess: z.boolean().optional(),
-  allowedUserIds: z.array(z.string()).optional()
+  allowedUserIds: z.array(z.string()).optional(),
+  metadataColumns: z.array(z.string().min(1)).optional()
 })
 
 function destinationToResponse(destination: S3Destination) {
@@ -29,6 +30,7 @@ function destinationToResponse(destination: S3Destination) {
     forcePathStyle: destination.forcePathStyle,
     allowPublicAccess: destination.allowPublicAccess,
     allowedUserIds: destination.allowedUserIds,
+    metadataColumns: destination.metadataColumns ?? [],
     createdAt: destination.createdAt,
     updatedAt: destination.updatedAt
   }

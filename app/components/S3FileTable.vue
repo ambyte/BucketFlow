@@ -1,53 +1,237 @@
 <template>
-  <UTable v-model:sorting="sorting" :data="data" :columns="tableColumns" :sorting-options="sortingOptions"
-    :ui="{ tr: 'hover:bg-elevated/50' }" @select="(e: Event, row: any) => handleRowClick(row)" />
+  <div class="w-full overflow-x-auto">
+    <table class="w-full min-w-[600px]">
+      <thead>
+        <tr class="border-b border-accented">
+          <th class="text-left py-3 px-4 font-medium">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              label="Name"
+              :icon="getSortIcon('name')"
+              class="-mx-2.5"
+              @click="sortBy('name')"
+            />
+          </th>
+          <th class="text-right w-48 py-3 px-4 font-medium">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              label="Size"
+              :icon="getSortIcon('Size')"
+              class="-mx-2.5 ml-auto"
+              @click="sortBy('Size')"
+            />
+          </th>
+          <th class="text-right w-32 py-3 px-4 font-medium">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              label="Date"
+              :icon="getSortIcon('LastModified')"
+              class="-mx-2.5 ml-auto"
+              @click="sortBy('LastModified')"
+            />
+          </th>
+          <th
+            v-for="metaKey in metadataColumns"
+            :key="metaKey"
+            class="text-left max-w-[200px] py-3 px-4 font-medium"
+          >
+            {{ metaKey }}
+          </th>
+          <th class="text-right w-32 py-3 px-4" />
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="item in sortedData"
+          :key="item.name"
+          class="border-b border-accented/50 hover:bg-elevated/50 cursor-pointer transition-colors"
+          @click="handleRowClick(item)"
+        >
+          <td class="py-2 px-4">
+            <div class="flex items-center gap-2">
+              <UIcon
+                :name="item.isFolder ? 'i-heroicons-folder' : getFileIcon(item as FileItem)"
+                :class="['w-5 h-5 shrink-0', item.isFolder ? 'text-primary' : 'text-muted']"
+              />
+              <span class="flex-1 truncate text-highlighted">{{ item.name }}</span>
+            </div>
+          </td>
+          <td class="py-2 px-4 text-right w-48">
+            <span v-if="!item.isFolder" class="text-sm text-muted">{{ formatFileSize(item.Size) }}</span>
+          </td>
+          <td class="py-2 px-4 text-right w-32">
+            <span v-if="!item.isFolder" class="text-muted text-sm">{{ formatDateShort(item.LastModified) }}</span>
+          </td>
+          <td
+            v-for="metaKey in metadataColumns"
+            :key="metaKey"
+            class="py-2 px-4 text-left max-w-[200px]"
+          >
+            <span
+              v-if="!item.isFolder"
+              class="text-muted text-sm truncate block max-w-[200px]"
+              :title="item.Metadata?.[metaKey] ?? ''"
+            >
+              {{ item.Metadata?.[metaKey] ?? '-' }}
+            </span>
+          </td>
+          <td class="py-2 px-4 text-right w-32">
+            <div class="flex items-center gap-1 justify-end">
+              <UTooltip v-if="showMetadata && !item.isFolder" text="Metadata">
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  icon="i-heroicons-tag"
+                  size="md"
+                  class="cursor-pointer"
+                  @click.stop="emit('metadata', item as FileItem)"
+                />
+              </UTooltip>
+              <UTooltip v-if="isEditor && !item.isFolder" text="Rename">
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  icon="i-heroicons-pencil-square"
+                  size="md"
+                  class="cursor-pointer"
+                  @click.stop="emit('renameFile', item as FileItem)"
+                />
+              </UTooltip>
+              <UTooltip v-if="!item.isFolder" text="Download">
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  icon="i-heroicons-arrow-down-tray"
+                  size="md"
+                  class="cursor-pointer"
+                  @click.stop="emit('download', item as FileItem)"
+                />
+              </UTooltip>
+              <UTooltip v-if="!item.isFolder && canPreview(item as FileItem)" text="Preview">
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  icon="i-heroicons-eye"
+                  size="md"
+                  class="cursor-pointer"
+                  @click.stop="emit('preview', item as FileItem)"
+                />
+              </UTooltip>
+              <UTooltip v-if="isEditor && item.isFolder" text="Rename">
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  icon="i-heroicons-pencil-square"
+                  size="md"
+                  class="cursor-pointer"
+                  @click.stop="emit('renameFolder', { name: item.name, Prefix: (item as any).Prefix })"
+                />
+              </UTooltip>
+              <UTooltip v-if="isEditor && item.isFolder" text="Delete">
+                <UButton
+                  variant="ghost"
+                  color="error"
+                  icon="i-heroicons-trash"
+                  size="md"
+                  class="cursor-pointer"
+                  @click.stop="emit('deleteFolder', { name: item.name, Prefix: (item as any).Prefix })"
+                />
+              </UTooltip>
+              <UTooltip v-if="isEditor && !item.isFolder" text="Delete">
+                <UButton
+                  variant="ghost"
+                  color="error"
+                  icon="i-heroicons-trash"
+                  size="md"
+                  class="cursor-pointer"
+                  @click.stop="emit('delete', item as FileItem)"
+                />
+              </UTooltip>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, h, ref, resolveComponent } from 'vue'
-import { getSortedRowModel } from '@tanstack/vue-table'
+import { computed, ref } from 'vue'
 import type { FileItem } from '../types'
-import type { TableColumn } from '@nuxt/ui'
 import { getFileIcon, formatFileSize, formatDateShort, canPreview } from '../utils/fileUtils'
+
+type TableRow = FileItem & { isFolder?: boolean; name: string }
 
 interface Props {
   data: Array<FileItem & { isFolder?: boolean; name: string }>
   isEditor?: boolean
+  showMetadata?: boolean
+  metadataColumns?: string[]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), { showMetadata: true, metadataColumns: () => [] })
 
 const emit = defineEmits<{
-  select: [item: FileItem & { isFolder?: boolean; name: string }]
-  doubleClick: [item: FileItem & { isFolder?: boolean; name: string }]
+  select: [item: TableRow]
+  doubleClick: [item: TableRow]
   download: [file: FileItem]
   preview: [file: FileItem]
   delete: [file: FileItem]
   deleteFolder: [folder: { name: string; Prefix: string }]
   renameFolder: [folder: { name: string; Prefix: string }]
   renameFile: [file: FileItem]
+  metadata: [file: FileItem]
 }>()
 
-const UButton = resolveComponent('UButton')
-const UTooltip = resolveComponent('UTooltip')
-const UIcon = resolveComponent('UIcon')
+const sortColumn = ref<'name' | 'Size' | 'LastModified'>('name')
+const sortDesc = ref(false)
 
-type TableRow = FileItem & { isFolder?: boolean; name: string }
+function getSortIcon(column: 'name' | 'Size' | 'LastModified') {
+  if (sortColumn.value !== column) return 'i-heroicons-arrows-up-down'
+  return sortDesc.value ? 'i-heroicons-arrow-down' : 'i-heroicons-arrow-up'
+}
 
-const sorting = ref([{ id: 'name', desc: false }])
+const sortedData = computed(() => {
+  const items = [...props.data]
 
-const sortingOptions = computed(() => ({
-  getSortedRowModel: getSortedRowModel()
-} as any))
+  return items.sort((a, b) => {
+    // Folders first
+    if (a.isFolder && !b.isFolder) return -1
+    if (!a.isFolder && b.isFolder) return 1
 
-// Click handling logic
+    let cmp = 0
+    if (sortColumn.value === 'name') {
+      cmp = a.name.localeCompare(b.name)
+    } else if (sortColumn.value === 'Size') {
+      cmp = a.Size - b.Size
+    } else {
+      cmp = new Date(a.LastModified).getTime() - new Date(b.LastModified).getTime()
+    }
+
+    return sortDesc.value ? -cmp : cmp
+  })
+})
+
+function sortBy(column: 'name' | 'Size' | 'LastModified') {
+  if (sortColumn.value === column) {
+    sortDesc.value = !sortDesc.value
+  } else {
+    sortColumn.value = column
+    sortDesc.value = false
+  }
+}
+
+// Click handling: single vs double
 let lastClickTime = 0
 let lastClickRowId: string | null = null
 let clickTimeout: ReturnType<typeof setTimeout> | null = null
 
-const handleRowClick = (row: any) => {
+function handleRowClick(item: TableRow) {
   const now = Date.now()
-  const rowId = (row.original as any).name
+  const rowId = item.name
   const timeDiff = now - lastClickTime
 
   if (clickTimeout) {
@@ -56,225 +240,18 @@ const handleRowClick = (row: any) => {
   }
 
   if (lastClickRowId === rowId && timeDiff < 300) {
-    // Double click detected
-    emit('doubleClick', row.original)
+    emit('doubleClick', item)
     lastClickTime = 0
     lastClickRowId = null
   } else {
-    // Single click - delay to allow for double click
     lastClickTime = now
     lastClickRowId = rowId
     clickTimeout = setTimeout(() => {
       if (lastClickRowId === rowId) {
-        emit('select', row.original)
+        emit('select', item)
       }
       clickTimeout = null
     }, 300)
   }
 }
-
-// Table columns definition
-const tableColumns = computed<TableColumn<TableRow>[]>(() => [
-  {
-    accessorKey: 'name',
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted()
-      return h(UButton, {
-        color: 'neutral',
-        variant: 'ghost',
-        label: 'Name',
-        icon: isSorted ? (isSorted === 'asc' ? 'i-heroicons-arrow-up' : 'i-heroicons-arrow-down') : 'i-heroicons-arrows-up-down',
-        class: '-mx-2.5',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
-      })
-    },
-    sortingFn: (rowA: any, rowB: any) => {
-      const a = rowA.original as any
-      const b = rowB.original as any
-      // Folders first
-      if (a.isFolder && !b.isFolder) return -1
-      if (!a.isFolder && b.isFolder) return 1
-      // Then sort by name
-      return a.name.localeCompare(b.name)
-    },
-    cell: ({ row }) => {
-      const item = row.original as any
-      const isFolder = item.isFolder
-      const fileItem = item as unknown as FileItem
-
-      return h('div', { class: 'flex items-center gap-2' }, [
-        h(UIcon, {
-          name: isFolder ? 'i-heroicons-folder' : getFileIcon(fileItem),
-          class: `w-5 h-5 shrink-0 ${isFolder ? 'text-primary' : 'text-muted'}`
-        }),
-        h('span', { class: 'flex-1 truncate text-highlighted' }, item.name)
-      ])
-    }
-  },
-  {
-    accessorKey: 'Size',
-    size: 120,
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted()
-      return h(UButton, {
-        color: 'neutral',
-        variant: 'ghost',
-        label: 'Size',
-        icon: isSorted ? (isSorted === 'asc' ? 'i-heroicons-arrow-up' : 'i-heroicons-arrow-down') : 'i-heroicons-arrows-up-down',
-        class: '-mx-2.5 ml-auto',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
-      })
-    },
-    sortingFn: (rowA: any, rowB: any) => {
-      const a = rowA.original as any
-      const b = rowB.original as any
-      // Folders first
-      if (a.isFolder && !b.isFolder) return -1
-      if (!a.isFolder && b.isFolder) return 1
-      // Then sort by size
-      return a.Size - b.Size
-    },
-    meta: {
-      class: {
-        th: 'text-right w-48',
-        td: 'text-right w-48'
-      }
-    },
-    cell: ({ row }) => {
-      const item = row.original as any
-      if (item.isFolder) return ''
-      return h('span', { class: 'text-sm text-muted' }, formatFileSize(item.Size))
-    }
-  },
-  {
-    accessorKey: 'LastModified',
-    size: 120,
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted()
-      return h(UButton, {
-        color: 'neutral',
-        variant: 'ghost',
-        label: 'Date',
-        icon: isSorted ? (isSorted === 'asc' ? 'i-heroicons-arrow-up' : 'i-heroicons-arrow-down') : 'i-heroicons-arrows-up-down',
-        class: '-mx-2.5 ml-auto',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
-      })
-    },
-    sortingFn: (rowA: any, rowB: any) => {
-      const a = rowA.original as any
-      const b = rowB.original as any
-      // Folders first
-      if (a.isFolder && !b.isFolder) return -1
-      if (!a.isFolder && b.isFolder) return 1
-      // Then sort by date
-      return new Date(a.LastModified).getTime() - new Date(b.LastModified).getTime()
-    },
-    meta: {
-      class: {
-        th: 'text-right w-32',
-        td: 'text-right w-32'
-      }
-    },
-    cell: ({ row }) => {
-      const item = row.original as any
-      if (item.isFolder) return ''
-      return h('span', { class: 'text-muted text-sm w-24 text-right' }, formatDateShort(item.LastModified))
-    }
-  },
-  {
-    id: 'actions',
-    header: '',
-    meta: {
-      class: {
-        td: 'text-right w-32'
-      }
-    },
-    cell: ({ row }) => {
-      const item = row.original as any
-      const fileItem = item as unknown as FileItem
-      const isFolder = item.isFolder
-
-      return h('div', { class: 'flex items-center gap-1 justify-end' }, [
-        props.isEditor && !isFolder && h(UTooltip, { text: 'Rename' }, () =>
-          h(UButton, {
-            variant: 'ghost',
-            color: 'neutral',
-            icon: 'i-heroicons-pencil-square',
-            size: 'md',
-            class: 'cursor-pointer',
-            onClick: (e: Event) => {
-              e.stopPropagation()
-              emit('renameFile', fileItem)
-            }
-          })
-        ),
-        !isFolder && h(UTooltip, { text: 'Download' }, () =>
-          h(UButton, {
-            variant: 'ghost',
-            color: 'neutral',
-            icon: 'i-heroicons-arrow-down-tray',
-            size: 'md',
-            class: 'cursor-pointer',
-            onClick: (e: Event) => {
-              e.stopPropagation()
-              emit('download', fileItem)
-            }
-          })
-        ),
-        !isFolder && canPreview(fileItem) && h(UTooltip, { text: 'Preview' }, () =>
-          h(UButton, {
-            variant: 'ghost',
-            color: 'neutral',
-            icon: 'i-heroicons-eye',
-            size: 'md',
-            class: 'cursor-pointer',
-            onClick: (e: Event) => {
-              e.stopPropagation()
-              emit('preview', fileItem)
-            }
-          })
-        ),
-        props.isEditor && isFolder && h(UTooltip, { text: 'Rename' }, () =>
-          h(UButton, {
-            variant: 'ghost',
-            color: 'neutral',
-            icon: 'i-heroicons-pencil-square',
-            size: 'md',
-            class: 'cursor-pointer',
-            onClick: (e: Event) => {
-              e.stopPropagation()
-              emit('renameFolder', { name: item.name, Prefix: (item as any).Prefix })
-            }
-          })
-        ),
-        props.isEditor && isFolder && h(UTooltip, { text: 'Delete' }, () =>
-          h(UButton, {
-            variant: 'ghost',
-            color: 'error',
-            icon: 'i-heroicons-trash',
-            size: 'md',
-            class: 'cursor-pointer',
-            onClick: (e: Event) => {
-              e.stopPropagation()
-              emit('deleteFolder', { name: item.name, Prefix: (item as any).Prefix })
-            }
-          })
-        ),
-        props.isEditor && !isFolder && h(UTooltip, { text: 'Delete' }, () =>
-          h(UButton, {
-            variant: 'ghost',
-            color: 'error',
-            icon: 'i-heroicons-trash',
-            size: 'md',
-            class: 'cursor-pointer',
-            onClick: (e: Event) => {
-              e.stopPropagation()
-              emit('delete', fileItem)
-            }
-          })
-        )
-      ].filter(Boolean))
-    }
-  }
-])
 </script>

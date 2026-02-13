@@ -29,6 +29,8 @@ export interface S3Destination {
   forcePathStyle?: boolean
   allowPublicAccess?: boolean
   allowedUserIds: string[]
+  /** Metadata keys to display as columns in the file table */
+  metadataColumns?: string[]
   createdAt: string
   updatedAt: string
 }
@@ -41,6 +43,8 @@ export interface FileItem {
   StorageClass: string
   isFolder?: boolean
   name: string
+  /** User metadata from S3 (populated when metadataColumns is configured for destination) */
+  Metadata?: Record<string, string>
 }
 
 export interface FolderItem {
@@ -52,6 +56,8 @@ export interface ListObjectsResult {
   files: FileItem[]
   folders: FolderItem[]
   commonPrefixes: string[]
+  /** Metadata keys configured for this destination (for table columns) */
+  metadataColumns?: string[]
 }
 
 export interface UploadProgress {

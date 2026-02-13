@@ -81,6 +81,13 @@
             <UInput v-model="bucketNamesString" placeholder="bucket1 bucket2 bucket3" class="w-full" />
           </UFormField>
 
+          <UFormField label="Metadata columns (for table)" name="metadataColumns">
+            <UInput v-model="metadataColumnsString" placeholder="description author project" class="w-full" />
+            <template #help>
+              <span class="text-xs text-muted">Space-separated metadata key names to display as columns in the file table.</span>
+            </template>
+          </UFormField>
+
           <UFormField label="Region" name="region">
             <UInput v-model="destinationForm.region" placeholder="us-east-1" class="w-full" />
           </UFormField>
@@ -164,7 +171,8 @@ const destinationForm = reactive<Omit<S3Destination, 'id' | 'createdAt' | 'updat
   bucketNames: [],
   forcePathStyle: true,
   allowPublicAccess: false,
-  allowedUserIds: []
+  allowedUserIds: [],
+  metadataColumns: []
 })
 
 const isSlugManuallyEdited = ref(false)
@@ -211,6 +219,18 @@ const bucketNamesString = computed({
   }
 })
 
+const metadataColumnsString = computed({
+  get: () => {
+    return (destinationForm.metadataColumns ?? []).filter(k => k.trim()).join(' ')
+  },
+  set: (value: string) => {
+    destinationForm.metadataColumns = value
+      .split(/\s+/)
+      .map(k => k.trim())
+      .filter(k => k.length > 0)
+  }
+})
+
 const isValidForm = computed(() => {
   return destinationForm.name && destinationForm.slug &&
     destinationForm.endpoint && destinationForm.accessKeyId &&
@@ -236,6 +256,7 @@ const resetForm = () => {
   destinationForm.forcePathStyle = true
   destinationForm.allowedUserIds = []
   destinationForm.allowPublicAccess = false
+  destinationForm.metadataColumns = []
   isEditing.value = false
   editingId.value = null
   isSlugManuallyEdited.value = false
@@ -267,6 +288,7 @@ const openEditModal = async (destination: Omit<S3Destination, 'secretAccessKey'>
     destinationForm.forcePathStyle = fullDestination.forcePathStyle ?? true
     destinationForm.allowedUserIds = fullDestination.allowedUserIds || []
     destinationForm.allowPublicAccess = fullDestination.allowPublicAccess ?? false
+    destinationForm.metadataColumns = fullDestination.metadataColumns || []
     isEditing.value = true
     editingId.value = destination.id
     isSlugManuallyEdited.value = true // Preserve slug when editing
