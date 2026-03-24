@@ -3,19 +3,20 @@
   <p>BucketFlow</p>
 </h1>
 
-**A modern, self-hosted S3-compatible storage file manager** built with Nuxt and Nuxt UI. Manage your cloud objects across AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean Spaces, and any S3-compatible service — all from a single, beautiful interface. One-command Docker deployment, role-based access, public sharing links, and an embeddable file viewer.
+**A modern, self-hosted S3-compatible storage file manager** built with Nuxt and Nuxt UI. Manage your cloud objects across AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean Spaces, and any S3-compatible service from a single interface. Includes one-command Docker deployment, role-based access, public sharing for buckets and folders, multi-file ZIP downloads, and an embeddable file viewer.
 
 <p align="center">
-  <img src="docs/images/buckets-and-files.png" alt="BucketFlow — buckets and files" width="800">
+  <img src="docs/images/files.png" alt="BucketFlow — buckets and files" width="800">
 </p>
 
 ## Features
 
 - **Multi-provider support** — Connect multiple S3-compatible destinations (AWS S3, R2, MinIO, Wasabi, Spaces, etc.)
 - **Role-based access** — Admin and Editor roles with per-destination user permissions
-- **Public sharing** — Generate shareable read-only links for specific destinations and buckets
+- **Public sharing** — Generate and edit shareable links for buckets and folders, with expiration settings and granular permissions
 - **Embeddable viewer** — Embed the file browser via iframe with customizable themes (light/dark, colors)
-- **Full CRUD operations** — Browse, upload, download, delete, create folders, rename files, edit metadata
+- **Advanced file operations** — Browse, upload, download, delete, create folders, rename files, edit metadata, and download multiple files/folders as ZIP
+- **Improved UX** — Cleaner table actions via contextual menu and more consistent navigation behavior across destinations/buckets
 - **Secure by design** — JWT authentication, bcrypt password hashing, credential isolation between roles
 
 ---
