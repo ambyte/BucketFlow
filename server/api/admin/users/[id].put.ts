@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const updates: Partial<{ username: string; password: string; role: UserRole }> = {}
+  const updates: Partial<{ username: string, password: string, role: UserRole }> = {}
   if (data.username) updates.username = data.username
   if (data.password) updates.password = await hashPassword(data.password)
   if (data.role) updates.role = data.role as UserRole

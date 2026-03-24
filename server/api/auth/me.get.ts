@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const auth = requireAuth(event)
   const users = await getUsers()
   const user = users.find(u => u.id === auth.userId)
-  
+
   if (!user) {
     throw createError({
       statusCode: 404,

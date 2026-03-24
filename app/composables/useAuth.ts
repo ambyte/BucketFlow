@@ -5,11 +5,13 @@ export const useAuth = () => {
   const user = useState<User | null>('auth-user', () => null)
   const isAuthenticated = computed(() => !!token.value && !!user.value)
   const isAdmin = computed(() => user.value?.role === 'admin')
-  const isEditor = computed(() => ['admin', 'editor'].includes(user.value?.role || ''))
+  const isEditor = computed(() =>
+    ['admin', 'editor'].includes(user.value?.role || '')
+  )
   const isViewer = computed(() => !isAuthenticated.value)
 
   const apiCall = async (endpoint: string, options: any = {}) => {
-    if (!process.client) {
+    if (!import.meta.client) {
       throw new Error('API calls can only be made from client side')
     }
 
@@ -30,7 +32,9 @@ export const useAuth = () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      const error: any = new Error(errorData.statusMessage || `HTTP ${response.status}`)
+      const error: any = new Error(
+        errorData.statusMessage || `HTTP ${response.status}`
+      )
       error.data = errorData
       error.statusCode = response.status
       throw error
@@ -49,13 +53,12 @@ export const useAuth = () => {
       token.value = response.token
       user.value = response.user
 
-      if (process.client) {
+      if (import.meta.client) {
         localStorage.setItem('s3fm-token', response.token)
       }
 
       return true
-    }
-    catch (error: any) {
+    } catch (error: any) {
       useToast().add({
         title: 'Login failed',
         description: error.message || 'Invalid credentials',
@@ -68,36 +71,25 @@ export const useAuth = () => {
   const logout = () => {
     token.value = null
     user.value = null
-    if (process.client) {
+    if (import.meta.client) {
       localStorage.removeItem('s3fm-token')
       navigateTo('/login')
     }
   }
 
   const initAuth = async () => {
-    if (process.client) {
+    if (import.meta.client) {
       const savedToken = localStorage.getItem('s3fm-token')
       if (savedToken) {
         token.value = savedToken
         try {
           const response = await apiCall('/api/auth/me')
           user.value = response.user
-        }
-        catch {
+        } catch {
           logout()
         }
       }
     }
-  }
-
-  const hasPermission = (requiredRole: UserRole): boolean => {
-    const roleHierarchy: Record<UserRole, number> = {
-      admin: 2,
-      editor: 1,
-    }
-
-    const userRole = user.value?.role || 'editor'
-    return roleHierarchy[userRole] >= roleHierarchy[requiredRole]
   }
 
   return {
@@ -110,7 +102,6 @@ export const useAuth = () => {
     login,
     logout,
     initAuth,
-    hasPermission,
     apiCall
   }
 }

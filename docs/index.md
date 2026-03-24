@@ -1,21 +1,45 @@
-# BucketFlow Documentation
+<h1 align="center">
+  <img src="images/logo.png" alt="BucketFlow Logo" width="180">
+  <p>BucketFlow</p>
+</h1>
 
-A modern, self-hosted S3-compatible storage file manager built with Nuxt and Nuxt UI. Manage your cloud objects across AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean Spaces, and any S3-compatible service — all from a single, beautiful interface.
+**BucketFlow** is a modern self-hosted file manager for S3-compatible storage.
 
-![Buckets and Files view](images/buckets-and-files.png)
+It provides a single web interface to connect multiple providers, control user access, manage files and folders, and publish scoped public links.
 
-![Destinations](images/destinations.png) ![Users](images/users.png) ![Public view](images/public-view.png)
+Supported providers include AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean Spaces, and other S3-compatible APIs.
 
 ---
 
-## Table of Contents
+## What BucketFlow provides
 
-- [Overview](overview.md)
+| Capability | Description |
+|------------|-------------|
+| **Multiple S3 destinations** | Connect and operate several storage backends at once |
+| **Role-based access** | **Admin** and **Editor** roles with per-destination permissions |
+| **Public links** | Create anonymous links scoped to a bucket or folder |
+| **Link permissions** | Read-only by default, optionally allow uploads/folder creation |
+| **File operations** | Browse, upload, download, delete, rename, preview |
+| **S3 metadata support** | Display and edit custom object metadata |
+| **Embeddable viewer** | Embed the public view via `iframe` |
+
+![Files and folders](images/files.png)
+
+![Create destination](images/new-destination.png)
+![Users](images/admin-panel-users.png)
+![Public links](images/manage-public-links.png)
+
+---
+
+## Documentation map
+
+- [Installation](installation.md)
 - [User Roles](user-roles.md)
 - [S3 Destinations](s3-destinations.md)
 - [User Management](user-management.md)
-- [File Manager Operations](file-manager.md)
+- [File Manager](file-manager.md)
 - [Public Sharing](public-sharing.md)
 - [Embeddable Viewer](embeddable-viewer.md)
-- [Installation](installation.md)
 - [Project Structure](project-structure.md)
+
+

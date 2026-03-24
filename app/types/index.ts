@@ -17,10 +17,22 @@ export interface JwtPayload {
   exp: number
 }
 
+export interface PublicLink {
+  id: string
+  hash: string
+  destinationId: string
+  bucketName: string
+  path: string
+  allowFileUpload?: boolean
+  allowFolderCreation?: boolean
+  expiresAt?: string
+  createdAt: string
+  createdBy?: string
+}
+
 export interface S3Destination {
   id: string
   name: string
-  slug: string
   region?: string
   endpoint: string
   accessKeyId: string
@@ -29,7 +41,6 @@ export interface S3Destination {
   forcePathStyle?: boolean
   allowPublicAccess?: boolean
   allowedUserIds: string[]
-  /** Metadata keys to display as columns in the file table */
   metadataColumns?: string[]
   createdAt: string
   updatedAt: string
@@ -43,7 +54,6 @@ export interface FileItem {
   StorageClass: string
   isFolder?: boolean
   name: string
-  /** User metadata from S3 (populated when metadataColumns is configured for destination) */
   Metadata?: Record<string, string>
 }
 
@@ -56,7 +66,6 @@ export interface ListObjectsResult {
   files: FileItem[]
   folders: FolderItem[]
   commonPrefixes: string[]
-  /** Metadata keys configured for this destination (for table columns) */
   metadataColumns?: string[]
 }
 
@@ -66,4 +75,31 @@ export interface UploadProgress {
   progress: number
   status: 'pending' | 'uploading' | 'completed' | 'error'
   error?: string
+}
+
+export interface TableRow {
+  name: string
+  isFolder?: boolean
+  Key?: string
+  Prefix?: string
+  Size: number
+  LastModified: Date
+  ETag?: string
+  StorageClass?: string
+  Metadata?: Record<string, string>
+}
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+
+export interface ApiOptions {
+  method?: HttpMethod
+  body?: unknown
+  headers?: Record<string, string>
+}
+
+export interface ApiError {
+  message: string
+  statusMessage?: string
+  statusCode?: number
+  data?: unknown
 }

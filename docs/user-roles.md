@@ -2,21 +2,32 @@
 
 [← Back to index](index.md)
 
+BucketFlow uses two roles: **Admin** and **Editor**.
+
 ## Admin
 
-- Full access to all destinations and buckets
-- Create, edit, and delete S3 destinations
-- Create and manage users (editors)
-- Create and rename buckets
-- Assign editors to specific destinations
-- Enable public access for destinations
-- All file operations (upload, download, delete, rename)
+Admin has full access to:
+
+- all destinations and buckets;
+- the **Admin Panel**;
+- creating/updating/deleting S3 destinations;
+- user management;
+- bucket creation and rename;
+- all file operations;
+- enabling public access on destinations.
 
 ## Editor
 
-- Access only destinations they are assigned to
-- Full file operations within assigned destinations: upload, download, delete, rename
-- Create folders, delete folders, rename folders
-- Cannot access Admin panel
-- Cannot create/rename buckets
-- Cannot manage destinations or users
+Editor can work only with destinations assigned by an admin:
+
+- browse, upload, download, delete, and rename files;
+- create, delete, and rename folders;
+- work with public links only on destinations that allow anonymous access.
+
+Editor limitations:
+
+- no **Admin Panel** access;
+- no user management;
+- no bucket creation/rename.
+
+![User panel](images/admin-panel-users.png)

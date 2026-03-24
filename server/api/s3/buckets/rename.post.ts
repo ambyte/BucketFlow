@@ -45,8 +45,7 @@ export default defineEventHandler(async (event) => {
     }
 
     return { success: true, message: 'Bucket renamed successfully', newBucketName }
-  }
-  catch (error: any) {
+  } catch (error: any) {
     throw createError({
       statusCode: 400,
       statusMessage: error.message || 'Failed to rename bucket'

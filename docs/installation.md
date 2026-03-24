@@ -2,34 +2,30 @@
 
 [← Back to index](index.md)
 
-## Prerequisites
+## Requirements
 
 | Method | Requirements |
 |--------|--------------|
 | **Docker** | Docker 20.10+ and Docker Compose v2 |
-| **Local** | Node.js 20+, [pnpm](https://pnpm.io) 9+ (or `corepack enable` for auto-install) |
+| **Local** | Node.js 20+, [pnpm](https://pnpm.io) 9+ |
 
 ---
 
-## Docker (recommended)
+## Docker deployment (recommended)
 
-Docker deployment is the fastest way to get BucketFlow running. Choose one of the options below.
-
-### Option A: Build from source
-
-Clone the repository and run with the included `docker-compose.yml`:
+### Option A: run from repository source
 
 ```bash
-git clone https://github.com/your-org/bucketflow.git
+git clone https://github.com/ambyte/bucketflow.git
 cd bucketflow
 docker compose up -d
 ```
 
-The default setup builds the image from the local Dockerfile. This is ideal for development or when you need to customize the build.
+This option uses the local [Dockerfile](../Dockerfile) and is ideal for development or custom builds.
 
-### Option B: Pre-built image
+### Option B: pre-built GHCR image
 
-For a quicker start without building, use the pre-built image from GitHub Container Registry. Create a `docker-compose.yml`:
+Create a [docker-compose.yml](../docker-compose.yml) with the following service:
 
 ```yaml
 services:
@@ -58,54 +54,46 @@ Then run:
 docker compose up -d
 ```
 
-### Docker features
+### Docker setup benefits
 
-- **Auto-restart** — Container restarts automatically on failure
-- **Persistent volume** — User accounts, S3 destinations, and settings stored in `bucketflow-data`
-- **Health check** — Monitors `/api/health` every 30 seconds
-
-### Custom port
-
-To use a different host port (e.g. 8080):
-
-```yaml
-ports:
-  - "8080:3000"
-```
+- Automatic restart (`restart: unless-stopped`)
+- Persistent data storage in `bucketflow-data`
+- Health checks on `/api/health`
 
 ---
 
 ## First launch
 
-1. Open [http://localhost:3000](http://localhost:3000) in your browser
-2. You'll see a **registration form** — create the first admin account
-3. Log in and add your first S3 destination in **Settings → Destinations**
+1. Open [http://localhost:3000](http://localhost:3000)
+2. On first run, create the initial admin account
 
-See [S3 Destinations](s3-destinations.md) for provider-specific configuration.
+![Create admin user](images/initial-admin-account.png)
+
+3. Go to **Admin Panel → S3 Configuration** and add your first destination
+
+![Create destination](images/new-destination.png)
+
+Field details are documented in [S3 Destinations](s3-destinations.md).
 
 ---
 
 ## Local development
 
-For contributing or debugging:
-
 ```bash
-git clone https://github.com/your-org/bucketflow.git
+git clone https://github.com/ambyte/bucketflow.git
 cd bucketflow
 pnpm install
 pnpm dev
 ```
 
-The app runs at [http://localhost:3000](http://localhost:3000) with hot-reload.
+The app will be available at [http://localhost:3000](http://localhost:3000).
 
-### Build for production (local)
+Build and preview production locally:
 
 ```bash
 pnpm build
 pnpm preview
 ```
-
-Use `pnpm preview` to test the production build locally before deploying.
 
 ---
 
@@ -113,7 +101,7 @@ Use `pnpm preview` to test the production build locally before deploying.
 
 | Issue | Solution |
 |-------|----------|
-| Port 3000 already in use | Change the host port in `docker-compose.yml` (e.g. `"8080:3000"`) or stop the process using port 3000 |
+| Port `3000` is already in use | Change port mapping, e.g. `"8080:3000"` |
 | Container exits immediately | Check logs: `docker compose logs bucketflow` |
-| Data lost after restart | Ensure the `bucketflow-data` volume is defined and not removed with `docker compose down -v` |
-| Health check failing | Wait ~10–30 seconds after `docker compose up`; the first startup may take longer |
+| Data seems missing after restart | Ensure `bucketflow-data` is used and avoid `docker compose down -v` unless intentional |
+| Health check fails initially | Wait 10–30 seconds after startup, especially on first boot |

@@ -1,49 +1,59 @@
-# File Manager Operations
+# File Manager
 
 [← Back to index](index.md)
 
-The main file manager appears on the home page after login. Select a destination and bucket to browse files.
+After login, the main file manager is displayed.
 
-![Buckets and files](images/buckets-and-files.png)
+![File manager](images/files.png)
 
 ## Navigation
 
-- **Destination selector** — Choose which S3 destination to use
-- **Bucket sidebar** — List of buckets; click to switch
-- **Breadcrumbs** — Navigate through folder hierarchy
-- **Grid/List view** — Toggle between grid and list layout
+- **S3 Destination** — select active destination
+- **Bucket sidebar** — switch between buckets
+- **Breadcrumbs** — navigate nested folders
+- **Grid/List** — toggle layout mode
 
-## File Operations (Editors & Admins)
+## Available operations
 
-| Operation         | Purpose                                  |
-| ----------------- | ---------------------------------------- |
-| **Browse**        | Navigate folders and files               |
-| **Upload**        | Upload files to storage                  |
-| **Download**      | Save file locally                        |
-| **Preview**       | View file in browser (images, PDF, text) |
-| **Create folder** | Create new folder                        |
-| **Rename file**   | Change file name                         |
-| **Rename folder** | Change folder name                       |
-| **Delete file**   | Remove file                              |
-| **Delete folder** | Remove folder                            |
-| **Edit metadata** | Set user defined metadata                |
+| Operation | Description |
+|----------|-------------|
+| Browse | Explore files and folders in current bucket |
+| Upload | Upload one or multiple files |
+| Download | Download a single file |
+| Download selected | Bulk download selected files/folders as ZIP |
+| Preview | Preview images, PDF, and text files |
+| Create folder | Create a folder |
+| Rename file/folder | Rename file or folder |
+| Delete file/folder | Delete file or folder |
+| Metadata | View/edit S3 object metadata |
 
-![Edit file metadata](images/files-edit-metadata.png)
+![Upload files](images/upload-files.png)
+![Multi upload](images/upload-multiple-files.png)
+![Preview files](images/preview-files.png)
 
-## Bucket Operations (Admin only)
+## Bulk actions
 
-- **Create bucket** — "Create New Bucket" in the header
-- **Rename bucket** — Pencil icon next to bucket name in sidebar (copies all objects to new bucket)
+- Select multiple rows
+- Click **Download selected**
+- If only one file is selected, it is downloaded directly
+- If multiple items/folders are selected, a ZIP archive is generated
 
-## Upload Features
+![Download multiple files](images/download-multiple-files.png)
 
-- Drag-and-drop support
-- Multi-file upload
-- Progress indicator per file
-- Presigned URLs (direct upload to S3, no proxy)
+## Metadata
 
-## Preview Support
+If destination **Metadata columns** are configured, those keys appear as table columns.
 
-- **Images** — jpg, jpeg, png, gif, webp, svg
-- **PDF** — Inline PDF viewer
-- **Text files** — txt, md, json, code files, etc.
+- View object metadata values
+- Edit custom metadata for objects
+
+![Edit metadata](images/files-metadata.png)
+![Metadata in table](images/files-metadata-view.png)
+
+## Bucket operations (admin only)
+
+- **Create New Bucket** — create bucket
+- **Rename bucket** — rename bucket
+
+![Create bucket](images/new-bucket.png)
+![Rename files and folders](images/rename-files-and-folders.png)

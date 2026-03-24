@@ -2,34 +2,44 @@
 
 [← Back to index](index.md)
 
-Admins configure S3 destinations in **Admin Panel → S3 Configuration**. Each destination represents a connection to an S3-compatible service.
+An S3 destination is a connection to a specific S3-compatible provider.
 
-![Destinations](images/destinations.png)
+Configuration is available in **Admin Panel → S3 Configuration**.
 
-## Adding a Destination
+![Destinations section](images/admin-panel-destinations.png)
 
-1. Go to **Admin → S3 Configuration**
+## Adding a destination
+
+1. Open **Admin Panel → S3 Configuration**
 2. Click **Add Destination**
-3. Fill in the form:
+3. Fill in the fields
 
-| Field | Description |
-|-------|-------------|
-| **Name** | Display name for the destination |
-| **Slug** | URL-friendly identifier (used in public links, e.g. `my-storage`) |
+| Field | Purpose |
+|------|---------|
+| **Name** | Display name of the destination |
 | **Access Key ID** | S3 access key |
 | **Secret Access Key** | S3 secret key |
-| **Buckets** | Optional space-separated list to restrict to specific buckets |
-| **Metadata columns** | Space-separated metadata key names (e.g. `description author project`) to display as columns in the file table; S3 object metadata will be shown for these keys |
-| **Region** | e.g. `us-east-1` |
-| **Endpoint** | S3 endpoint URL (e.g. `https://s3.amazonaws.com`) |
-| **Force Path Style** | Enable for MinIO and similar providers |
-| **Allowed Users** | Select editor users who can access this destination (empty = admin only) |
-| **Allowed anonymous access** | Enable public read-only access via shareable link |
+| **Buckets** | Optional space-separated bucket allow-list |
+| **Metadata columns** | Space-separated metadata keys displayed as file table columns |
+| **Region** | Provider region, e.g. `us-east-1` |
+| **Endpoint** | S3 endpoint URL, e.g. `https://s3.amazonaws.com` |
+| **Force Path Style** | Enable for MinIO and similar services |
+| **Allowed Users** | Editors allowed to access this destination |
+| **Allowed anonymous access** | Enables public links and anonymous access |
 
-![Update destination form](images/update-destination.png)
+![New destination form](images/new-destination.png)
 
-## Destination Options
+## Additional actions
 
-- **Test Connection** — Verify credentials before saving
-- **Edit** — Update configuration
-- **Delete** — Remove destination (does not delete data in S3)
+- **Test Connection** — validate connectivity before saving
+- **Edit** — update destination settings
+- **Delete** — remove destination (does not delete data from S3)
+
+## Supported providers
+
+- AWS S3
+- Cloudflare R2
+- MinIO
+- Wasabi
+- DigitalOcean Spaces
+- Any S3-compatible API

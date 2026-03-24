@@ -23,8 +23,7 @@ export function generateToken(user: User, secret: string): string {
 export function verifyToken(token: string, secret: string): JwtPayload | null {
   try {
     return jwt.verify(token, secret) as JwtPayload
-  }
-  catch {
+  } catch {
     return null
   }
 }

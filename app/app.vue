@@ -24,7 +24,7 @@ useSeoMeta({
   title,
   description,
   ogTitle: title,
-  ogDescription: description,
+  ogDescription: description
 })
 
 const toaster = { position: 'bottom-right' as const }

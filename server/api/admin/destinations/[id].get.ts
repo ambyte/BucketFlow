@@ -6,7 +6,6 @@ function destinationToResponse(destination: S3Destination) {
   return {
     id: destination.id,
     name: destination.name,
-    slug: destination.slug,
     region: destination.region,
     endpoint: destination.endpoint,
     accessKeyId: destination.accessKeyId,

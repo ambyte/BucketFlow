@@ -27,8 +27,7 @@ export default defineEventHandler(async (event) => {
   try {
     await createBucket(destination, data.bucketName)
     return { success: true, message: 'Bucket created successfully' }
-  }
-  catch (error: any) {
+  } catch (error: any) {
     throw createError({
       statusCode: 400,
       statusMessage: error.message || 'Failed to create bucket'

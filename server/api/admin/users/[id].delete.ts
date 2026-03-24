@@ -12,7 +12,6 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Prevent self-deletion
   if (id === auth.userId) {
     throw createError({
       statusCode: 400,
@@ -29,7 +28,6 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Prevent deleting the last admin
   if (targetUser.role === 'admin') {
     const adminCount = users.filter(u => u.role === 'admin').length
     if (adminCount <= 1) {
@@ -48,7 +46,6 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Remove user from allowedUserIds in all destinations
   const destinations = await getDestinations()
   for (const dest of destinations) {
     if (dest.allowedUserIds?.includes(id)) {

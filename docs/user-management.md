@@ -2,22 +2,28 @@
 
 [← Back to index](index.md)
 
-Admins manage users in **Admin Panel → Users**. Only **Editor** users can be created via the UI; the admin account is created on first launch.
+This section is available at **Admin Panel → Users**.
 
-![User Management](images/users.png)
+Only **Editor** users are created via UI. The first admin account is created on initial setup.
 
-## Creating an Editor
+![Users panel](images/admin-panel-users.png)
 
-1. Go to **Admin → Users**
+## Creating an editor user
+
+1. Open **Admin Panel → Users**
 2. Click **Add User**
-3. Enter username (min 3 characters) and password (min 6 characters)
-4. Click **Create User**
+3. Enter username (minimum 3 characters)
+4. Enter password (minimum 6 characters) and confirmation
+5. Click **Create User**
 
-## Managing Users
+![Create user](images/new-user.png)
 
-![Update user](images/update-user.png)
+## Editing and deleting users
 
-- **Edit** — Change password
-- **Delete** — Remove user (cannot delete yourself)
+- **Edit** — update username and/or password
+- **Delete** — remove an editor user
+- Current admin has a dedicated **Change credentials** flow
 
-After creating editors, assign them to destinations in **S3 Configuration → Allowed Users**.
+![Assign user to destination](images/add-user-to-destination.png)
+
+After creating editor users, grant destination access in [S3 Destinations](s3-destinations.md) using **Allowed Users**.

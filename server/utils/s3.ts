@@ -1,16 +1,39 @@
-import { S3Client, ListBucketsCommand, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, DeleteObjectCommand, DeleteObjectsCommand, CopyObjectCommand, HeadObjectCommand, CreateBucketCommand, DeleteBucketCommand, type ListObjectsV2CommandInput } from '@aws-sdk/client-s3'
+import {
+  S3Client,
+  ListBucketsCommand,
+  ListObjectsV2Command,
+  GetObjectCommand,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  DeleteObjectsCommand,
+  CopyObjectCommand,
+  HeadObjectCommand,
+  HeadBucketCommand,
+  CreateBucketCommand,
+  DeleteBucketCommand,
+  type ListObjectsV2CommandInput
+} from '@aws-sdk/client-s3'
+import { createError } from 'h3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import type { FileItem, FolderItem, ListObjectsResult, S3Destination } from '../../app/types'
+import type {
+  FileItem,
+  FolderItem,
+  ListObjectsResult,
+  S3Destination
+} from '../../app/types'
 
 const METADATA_B64_PREFIX = 'b64:'
 
 /** S3 x-amz-meta-* headers allow only US-ASCII. Encode non-ASCII values as Base64. */
-export function encodeMetadataForS3(metadata: Record<string, string>): Record<string, string> {
+export function encodeMetadataForS3(
+  metadata: Record<string, string>
+): Record<string, string> {
   const result: Record<string, string> = {}
   for (const [k, v] of Object.entries(metadata)) {
     if (typeof v !== 'string') continue
     if (/[^\x00-\x7F]/.test(v)) {
-      result[k] = METADATA_B64_PREFIX + Buffer.from(v, 'utf8').toString('base64')
+      result[k]
+        = METADATA_B64_PREFIX + Buffer.from(v, 'utf8').toString('base64')
     } else {
       result[k] = v
     }
@@ -19,14 +42,19 @@ export function encodeMetadataForS3(metadata: Record<string, string>): Record<st
 }
 
 /** Decode metadata values that were Base64-encoded for S3 headers. */
-export function decodeMetadataFromS3(metadata: Record<string, string> | undefined): Record<string, string> {
+export function decodeMetadataFromS3(
+  metadata: Record<string, string> | undefined
+): Record<string, string> {
   if (!metadata) return {}
   const result: Record<string, string> = {}
   for (const [k, v] of Object.entries(metadata)) {
     if (typeof v !== 'string') continue
     if (v.startsWith(METADATA_B64_PREFIX)) {
       try {
-        result[k] = Buffer.from(v.slice(METADATA_B64_PREFIX.length), 'base64').toString('utf8')
+        result[k] = Buffer.from(
+          v.slice(METADATA_B64_PREFIX.length),
+          'base64'
+        ).toString('utf8')
       } catch {
         result[k] = v
       }
@@ -37,16 +65,16 @@ export function decodeMetadataFromS3(metadata: Record<string, string> | undefine
   return result
 }
 
-let s3Client: S3Client | null = null
-let currentConfig: S3Destination | null = null
+/** Cache S3 clients by destination ID to avoid race conditions with concurrent requests */
+const clientCache = new Map<string, { client: S3Client, configHash: string }>()
+
+function buildConfigHash(destination: S3Destination): string {
+  return `${destination.endpoint}|${destination.accessKeyId}|${destination.secretAccessKey}|${destination.region}|${destination.forcePathStyle}`
+}
 
 export function getS3Client(destination: S3Destination): S3Client {
   if (!destination) {
     throw new Error('S3Destination is required')
-  }
-
-  if (s3Client && currentConfig && JSON.stringify(currentConfig) === JSON.stringify(destination)) {
-    return s3Client
   }
 
   if (!destination.region) {
@@ -65,7 +93,15 @@ export function getS3Client(destination: S3Destination): S3Client {
     throw new Error('Secret access key is required')
   }
 
-  s3Client = new S3Client({
+  const cacheKey = destination.id
+  const configHash = buildConfigHash(destination)
+  const cached = clientCache.get(cacheKey)
+
+  if (cached && cached.configHash === configHash) {
+    return cached.client
+  }
+
+  const client = new S3Client({
     region: destination.region,
     endpoint: destination.endpoint,
     credentials: {
@@ -75,11 +111,13 @@ export function getS3Client(destination: S3Destination): S3Client {
     forcePathStyle: destination.forcePathStyle ?? true
   })
 
-  currentConfig = destination
-  return s3Client
+  clientCache.set(cacheKey, { client, configHash })
+  return client
 }
 
-export async function testS3Connection(destination: S3Destination): Promise<{ success: boolean; message: string; buckets?: string[] }> {
+export async function testS3Connection(
+  destination: S3Destination
+): Promise<{ success: boolean, message: string, buckets?: string[] }> {
   try {
     const client = getS3Client(destination)
     const command = new ListBucketsCommand({})
@@ -92,8 +130,7 @@ export async function testS3Connection(destination: S3Destination): Promise<{ su
       message: 'Connection successful',
       buckets
     }
-  }
-  catch (error) {
+  } catch (error) {
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -101,33 +138,81 @@ export async function testS3Connection(destination: S3Destination): Promise<{ su
   }
 }
 
-export async function listBuckets(destination: S3Destination, bucketNames?: string[]): Promise<string[]> {
+export async function listBuckets(
+  destination: S3Destination,
+  bucketNames?: string[]
+): Promise<string[]> {
   const client = getS3Client(destination)
   const command = new ListBucketsCommand({})
   const response = await client.send(command)
-  const allBuckets = response.Buckets?.map(b => b.Name || '').filter(Boolean) || []
+  const allBuckets
+    = response.Buckets?.map(b => b.Name || '').filter(Boolean) || []
 
   if (!bucketNames || bucketNames.length === 0) {
     return allBuckets
   }
 
-  // Фильтруем бакеты по списку bucketNames
   return allBuckets.filter(bucket => bucketNames.includes(bucket))
 }
 
-export async function listObjects(destination: S3Destination, bucketName: string, prefix: string = '', delimiter: string = '/'): Promise<ListObjectsResult> {
+export async function ensureBucketExists(
+  destination: S3Destination,
+  bucketName: string
+): Promise<void> {
+  const client = getS3Client(destination)
+  try {
+    await client.send(new HeadBucketCommand({ Bucket: bucketName }))
+  } catch (err: unknown) {
+    const name
+      = err && typeof err === 'object' && 'name' in err
+        ? String((err as { name: string }).name)
+        : ''
+    if (name === 'NoSuchBucket' || name === 'NotFound') {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'Bucket not found'
+      })
+    }
+    throw err
+  }
+}
+
+export async function hasPrefixContent(
+  destination: S3Destination,
+  bucketName: string,
+  prefix: string
+): Promise<boolean> {
+  const client = getS3Client(destination)
+  const command = new ListObjectsV2Command({
+    Bucket: bucketName,
+    Prefix: prefix,
+    Delimiter: '/',
+    MaxKeys: 1
+  })
+  const response = await client.send(command)
+  const contents = response.Contents?.length ?? 0
+  const prefixes = response.CommonPrefixes?.length ?? 0
+  return contents > 0 || prefixes > 0
+}
+
+export async function listObjects(
+  destination: S3Destination,
+  bucketName: string,
+  prefix: string = ''
+): Promise<ListObjectsResult> {
   const client = getS3Client(destination)
 
   const params: ListObjectsV2CommandInput = {
     Bucket: bucketName,
     Prefix: prefix,
-    Delimiter: delimiter
+    Delimiter: '/'
   }
 
   const command = new ListObjectsV2Command(params)
   const response = await client.send(command)
 
-  const metadataColumns = destination.metadataColumns?.filter(k => k?.trim()) || []
+  const metadataColumns
+    = destination.metadataColumns?.filter(k => k?.trim()) || []
 
   const files: FileItem[] = await Promise.all(
     (response.Contents || [])
@@ -146,9 +231,10 @@ export async function listObjects(destination: S3Destination, bucketName: string
         if (metadataColumns.length > 0) {
           try {
             const head = await getObjectMetadata(destination, bucketName, key)
-            file.Metadata = decodeMetadataFromS3(head.Metadata as Record<string, string>)
-          }
-          catch {
+            file.Metadata = decodeMetadataFromS3(
+              head.Metadata as Record<string, string>
+            )
+          } catch {
             file.Metadata = {}
           }
         }
@@ -156,11 +242,12 @@ export async function listObjects(destination: S3Destination, bucketName: string
       })
   )
 
-  const folders: FolderItem[] = (response.CommonPrefixes || [])
-    .map(commonPrefix => ({
+  const folders: FolderItem[] = (response.CommonPrefixes || []).map(
+    commonPrefix => ({
       Prefix: commonPrefix.Prefix || '',
       name: commonPrefix.Prefix?.replace(prefix, '').replace(/\/$/, '') || ''
-    }))
+    })
+  )
 
   return {
     files,
@@ -170,7 +257,13 @@ export async function listObjects(destination: S3Destination, bucketName: string
   }
 }
 
-export async function getPresignedDownloadUrl(destination: S3Destination, bucketName: string, key: string, expiresIn: number = 3600, downloadFilename?: string): Promise<string> {
+export async function getPresignedDownloadUrl(
+  destination: S3Destination,
+  bucketName: string,
+  key: string,
+  expiresIn: number = 3600,
+  downloadFilename?: string
+): Promise<string> {
   const client = getS3Client(destination)
   const command = new GetObjectCommand({
     Bucket: bucketName,
@@ -183,7 +276,13 @@ export async function getPresignedDownloadUrl(destination: S3Destination, bucket
   return getSignedUrl(client, command, { expiresIn })
 }
 
-export async function getPresignedUploadUrl(destination: S3Destination, bucketName: string, key: string, contentType: string, expiresIn: number = 3600): Promise<string> {
+export async function getPresignedUploadUrl(
+  destination: S3Destination,
+  bucketName: string,
+  key: string,
+  contentType: string,
+  expiresIn: number = 3600
+): Promise<string> {
   const client = getS3Client(destination)
   const command = new PutObjectCommand({
     Bucket: bucketName,
@@ -194,7 +293,13 @@ export async function getPresignedUploadUrl(destination: S3Destination, bucketNa
   return getSignedUrl(client, command, { expiresIn })
 }
 
-export async function uploadFile(destination: S3Destination, bucketName: string, key: string, body: Buffer, contentType: string): Promise<void> {
+export async function uploadFile(
+  destination: S3Destination,
+  bucketName: string,
+  key: string,
+  body: Buffer,
+  contentType: string
+): Promise<void> {
   const client = getS3Client(destination)
   const command = new PutObjectCommand({
     Bucket: bucketName,
@@ -206,7 +311,10 @@ export async function uploadFile(destination: S3Destination, bucketName: string,
   await client.send(command)
 }
 
-export async function createBucket(destination: S3Destination, bucketName: string): Promise<void> {
+export async function createBucket(
+  destination: S3Destination,
+  bucketName: string
+): Promise<void> {
   const client = getS3Client(destination)
   const command = new CreateBucketCommand({
     Bucket: bucketName
@@ -215,7 +323,11 @@ export async function createBucket(destination: S3Destination, bucketName: strin
   await client.send(command)
 }
 
-export async function deleteObject(destination: S3Destination, bucketName: string, key: string): Promise<void> {
+export async function deleteObject(
+  destination: S3Destination,
+  bucketName: string,
+  key: string
+): Promise<void> {
   const client = getS3Client(destination)
   const command = new DeleteObjectCommand({
     Bucket: bucketName,
@@ -225,7 +337,11 @@ export async function deleteObject(destination: S3Destination, bucketName: strin
   await client.send(command)
 }
 
-export async function deleteObjects(destination: S3Destination, bucketName: string, keys: string[]): Promise<void> {
+export async function deleteObjects(
+  destination: S3Destination,
+  bucketName: string,
+  keys: string[]
+): Promise<void> {
   const client = getS3Client(destination)
   const command = new DeleteObjectsCommand({
     Bucket: bucketName,
@@ -237,7 +353,11 @@ export async function deleteObjects(destination: S3Destination, bucketName: stri
   await client.send(command)
 }
 
-export async function getObjectMetadata(destination: S3Destination, bucketName: string, key: string) {
+export async function getObjectMetadata(
+  destination: S3Destination,
+  bucketName: string,
+  key: string
+) {
   const client = getS3Client(destination)
   const command = new HeadObjectCommand({
     Bucket: bucketName,
@@ -248,7 +368,11 @@ export async function getObjectMetadata(destination: S3Destination, bucketName: 
 }
 
 /** List all object keys under a prefix recursively (no delimiter) */
-export async function listAllKeysUnderPrefix(destination: S3Destination, bucketName: string, prefix: string): Promise<string[]> {
+export async function listAllKeysUnderPrefix(
+  destination: S3Destination,
+  bucketName: string,
+  prefix: string
+): Promise<string[]> {
   const client = getS3Client(destination)
   const keys: string[] = []
   let continuationToken: string | undefined
@@ -263,12 +387,19 @@ export async function listAllKeysUnderPrefix(destination: S3Destination, bucketN
     for (const obj of response.Contents || []) {
       if (obj.Key) keys.push(obj.Key)
     }
-    continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined
+    continuationToken = response.IsTruncated
+      ? response.NextContinuationToken
+      : undefined
   } while (continuationToken)
   return keys
 }
 
-export async function copyObject(destination: S3Destination, bucketName: string, sourceKey: string, destKey: string): Promise<void> {
+export async function copyObject(
+  destination: S3Destination,
+  bucketName: string,
+  sourceKey: string,
+  destKey: string
+): Promise<void> {
   const client = getS3Client(destination)
   const command = new CopyObjectCommand({
     Bucket: bucketName,
@@ -279,7 +410,12 @@ export async function copyObject(destination: S3Destination, bucketName: string,
 }
 
 /** Copy object to itself with new user metadata (updates metadata without re-uploading content) */
-export async function copyObjectWithMetadata(destination: S3Destination, bucketName: string, key: string, metadata: Record<string, string>): Promise<void> {
+export async function copyObjectWithMetadata(
+  destination: S3Destination,
+  bucketName: string,
+  key: string,
+  metadata: Record<string, string>
+): Promise<void> {
   const client = getS3Client(destination)
   const encoded = encodeMetadataForS3(metadata)
   const command = new CopyObjectCommand({
@@ -294,7 +430,11 @@ export async function copyObjectWithMetadata(destination: S3Destination, bucketN
 
 const DELETE_BATCH_SIZE = 1000
 
-export async function deleteFolder(destination: S3Destination, bucketName: string, prefix: string): Promise<{ deletedCount: number }> {
+export async function deleteFolder(
+  destination: S3Destination,
+  bucketName: string,
+  prefix: string
+): Promise<{ deletedCount: number }> {
   const keys = await listAllKeysUnderPrefix(destination, bucketName, prefix)
   let deletedCount = 0
   for (let i = 0; i < keys.length; i += DELETE_BATCH_SIZE) {
@@ -305,12 +445,22 @@ export async function deleteFolder(destination: S3Destination, bucketName: strin
   return { deletedCount }
 }
 
-export async function renameFile(destination: S3Destination, bucketName: string, oldKey: string, newKey: string): Promise<void> {
+export async function renameFile(
+  destination: S3Destination,
+  bucketName: string,
+  oldKey: string,
+  newKey: string
+): Promise<void> {
   await copyObject(destination, bucketName, oldKey, newKey)
   await deleteObject(destination, bucketName, oldKey)
 }
 
-export async function renameFolder(destination: S3Destination, bucketName: string, oldPrefix: string, newPrefix: string): Promise<{ copiedCount: number }> {
+export async function renameFolder(
+  destination: S3Destination,
+  bucketName: string,
+  oldPrefix: string,
+  newPrefix: string
+): Promise<{ copiedCount: number }> {
   const keys = await listAllKeysUnderPrefix(destination, bucketName, oldPrefix)
   let copiedCount = 0
   for (const key of keys) {
@@ -329,7 +479,13 @@ export async function renameFolder(destination: S3Destination, bucketName: strin
 }
 
 /** Copy object from one bucket to another (same or different) */
-export async function copyObjectCrossBucket(destination: S3Destination, sourceBucket: string, destBucket: string, sourceKey: string, destKey: string): Promise<void> {
+export async function copyObjectCrossBucket(
+  destination: S3Destination,
+  sourceBucket: string,
+  destBucket: string,
+  sourceKey: string,
+  destKey: string
+): Promise<void> {
   const client = getS3Client(destination)
   const command = new CopyObjectCommand({
     Bucket: destBucket,
@@ -339,7 +495,10 @@ export async function copyObjectCrossBucket(destination: S3Destination, sourceBu
   await client.send(command)
 }
 
-export async function deleteBucket(destination: S3Destination, bucketName: string): Promise<void> {
+export async function deleteBucket(
+  destination: S3Destination,
+  bucketName: string
+): Promise<void> {
   const client = getS3Client(destination)
   const command = new DeleteBucketCommand({
     Bucket: bucketName
@@ -348,11 +507,21 @@ export async function deleteBucket(destination: S3Destination, bucketName: strin
 }
 
 /** Rename bucket: create new, copy all objects, delete old bucket. Returns new bucket name. */
-export async function renameBucket(destination: S3Destination, oldBucketName: string, newBucketName: string): Promise<void> {
+export async function renameBucket(
+  destination: S3Destination,
+  oldBucketName: string,
+  newBucketName: string
+): Promise<void> {
   const keys = await listAllKeysUnderPrefix(destination, oldBucketName, '')
   await createBucket(destination, newBucketName)
   for (const key of keys) {
-    await copyObjectCrossBucket(destination, oldBucketName, newBucketName, key, key)
+    await copyObjectCrossBucket(
+      destination,
+      oldBucketName,
+      newBucketName,
+      key,
+      key
+    )
   }
   for (let i = 0; i < keys.length; i += DELETE_BATCH_SIZE) {
     const batch = keys.slice(i, i + DELETE_BATCH_SIZE)

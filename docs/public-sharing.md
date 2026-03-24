@@ -2,33 +2,55 @@
 
 [← Back to index](index.md)
 
-When a destination has **Allowed anonymous access** enabled, admins can generate a public link.
+Public links are available only for destinations with **Allowed anonymous access** enabled.
 
-![Generate public link](images/public-link-generate.png)
+![Manage public links](images/manage-public-links.png)
 
-## Getting the Link
+## Creating a public link
 
-1. Select a destination with public access
-2. Click **Public Link** in the header
-3. Copy the URL or embed code
+1. Select a destination with public access enabled
+2. Open target bucket/folder
+3. Click **Public Link**
+4. Copy URL or `iframe` embed code
 
-## Public URL Format
+![Create link](images/create-public-link.png)
 
+## Link settings
+
+- target bucket/path;
+- expiration date (or permanent link);
+- public page theme (`primary`, `neutral`, `theme`);
+- permissions:
+  - **Allow file upload** — allow file uploads;
+  - **Allow folder creation** — allow creating folders.
+
+![Link with upload permission](images/public-link-with-upload-permission.png)
+
+## Public URL format
+
+```text
+https://your-domain.com/public?path=<hash>&primary=emerald&neutral=zinc&theme=light
 ```
-https://your-domain.com/public?slug=your-destination-slug&primary=emerald&neutral=zinc&theme=light
-```
 
-| Query param | Description |
-|-------------|-------------|
-| `slug` | Destination slug (required) |
-| `primary` | Nuxt UI primary color |
-| `neutral` | Nuxt UI neutral color |
+| Parameter | Description |
+|----------|-------------|
+| `path` | Public link hash (required) |
+| `primary` | Primary theme color |
+| `neutral` | Neutral palette |
 | `theme` | `light` or `dark` |
 
-![Public sharing view](images/public-view.png)
+## Managing existing links
 
-## Public Access Limitations
+In **Manage Public Links** you can:
 
-- **Read-only** — View and download only
-- No upload, delete, or rename
-- No admin features
+- list destination links;
+- open the public page;
+- copy URL;
+- edit settings (including expiration and permissions);
+- delete links.
+
+## Security behavior
+
+- access is scoped to link bucket/path;
+- admin features are unavailable in public mode;
+- default mode is read-only unless upload/folder creation is explicitly enabled.

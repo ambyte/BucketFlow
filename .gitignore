@@ -4,6 +4,9 @@
 .nuxt
 .nitro
 .cache
+.zed
+.vscode
+.cursor
 dist
 
 # Node dependencies

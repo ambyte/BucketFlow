@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   const data = validateBody(loginSchema, body)
 
   const user = await getUserByUsername(data.username)
-  
+
   if (!user || !(await verifyPassword(data.password, user.password))) {
     throw createError({
       statusCode: 401,

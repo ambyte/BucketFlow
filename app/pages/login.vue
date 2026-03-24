@@ -4,7 +4,12 @@
       <!-- Logo/Brand Section -->
       <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center mb-4">
-          <img :src="logoImg" alt="BucketFlow Logo" height="64" width="64">
+          <img
+            :src="logoImg"
+            alt="BucketFlow Logo"
+            height="64"
+            width="64"
+          >
         </div>
         <h1 class="text-3xl font-bold  mb-2">
           BucketFlow
@@ -14,36 +19,61 @@
       <!-- Loading state -->
       <UCard v-if="isCheckingSetup">
         <div class="flex items-center justify-center py-8">
-          <UIcon name="i-heroicons-arrow-path" class="animate-spin size-8 text-primary" />
+          <UIcon
+            name="i-heroicons-arrow-path"
+            class="animate-spin size-8 text-primary"
+          />
         </div>
       </UCard>
 
       <!-- Registration Card (first run, no users) -->
       <UCard v-else-if="!hasUsers">
-        <UAuthForm :fields="registerFields" :loading="isLoading" title="Initial Setup"
-          description="Create the first administrator account" icon="i-heroicons-user-plus"
+        <UAuthForm
+          :fields="registerFields"
+          :loading="isLoading"
+          title="Initial Setup"
+          description="Create the first administrator account"
+          icon="i-heroicons-user-plus"
           :submit="{ label: 'Create Account', color: 'primary', size: 'lg', block: true, icon: 'i-heroicons-user-plus' }"
-          @submit="handleRegister">
+          @submit="handleRegister"
+        >
           <template #validation>
-            <UAlert v-if="errorMessage" color="error" variant="soft" icon="i-heroicons-exclamation-triangle"
-              :title="errorMessage" :description="errorDescription"
+            <UAlert
+              v-if="errorMessage"
+              color="error"
+              variant="soft"
+              icon="i-heroicons-exclamation-triangle"
+              :title="errorMessage"
+              :description="errorDescription"
               :close-button="{ icon: 'i-heroicons-x-mark-20-solid', color: 'error', variant: 'link', size: 'xs' }"
-              @close="errorMessage = ''" />
+              @close="errorMessage = ''"
+            />
           </template>
         </UAuthForm>
       </UCard>
 
       <!-- Login Card (users exist) -->
       <UCard v-else>
-        <UAuthForm :fields="loginFields" :loading="isLoading" title="Authentication"
-          description="Enter your credentials to access your account" icon="i-heroicons-lock-closed"
+        <UAuthForm
+          :fields="loginFields"
+          :loading="isLoading"
+          title="Authentication"
+          description="Enter your credentials to access your account"
+          icon="i-heroicons-lock-closed"
           :submit="{ label: 'Sign In', color: 'primary', size: 'lg', block: true, icon: 'i-heroicons-arrow-right-on-rectangle' }"
-          @submit="handleLogin">
+          @submit="handleLogin"
+        >
           <template #validation>
-            <UAlert v-if="errorMessage" color="error" variant="soft" icon="i-heroicons-exclamation-triangle"
-              :title="errorMessage" :description="errorDescription"
+            <UAlert
+              v-if="errorMessage"
+              color="error"
+              variant="soft"
+              icon="i-heroicons-exclamation-triangle"
+              :title="errorMessage"
+              :description="errorDescription"
               :close-button="{ icon: 'i-heroicons-x-mark-20-solid', color: 'error', variant: 'link', size: 'xs' }"
-              @close="errorMessage = ''" />
+              @close="errorMessage = ''"
+            />
           </template>
         </UAuthForm>
       </UCard>
@@ -123,7 +153,7 @@ const registerFields: AuthFormField[] = [
   }
 ]
 
-const handleLogin = async (event: FormSubmitEvent<{ username: string; password: string }>) => {
+const handleLogin = async (event: FormSubmitEvent<{ username: string, password: string }>) => {
   errorMessage.value = ''
   errorDescription.value = ''
 
@@ -136,17 +166,15 @@ const handleLogin = async (event: FormSubmitEvent<{ username: string; password: 
       errorMessage.value = 'Login failed'
       errorDescription.value = 'Invalid username or password. Please try again.'
     }
-  }
-  catch (error: any) {
+  } catch (error: any) {
     errorMessage.value = 'Login error'
     errorDescription.value = error.message || 'An unexpected error occurred. Please try again.'
-  }
-  finally {
+  } finally {
     isLoading.value = false
   }
 }
 
-const handleRegister = async (event: FormSubmitEvent<{ username: string; password: string; passwordConfirm: string }>) => {
+const handleRegister = async (event: FormSubmitEvent<{ username: string, password: string, passwordConfirm: string }>) => {
   errorMessage.value = ''
   errorDescription.value = ''
 
@@ -192,12 +220,10 @@ const handleRegister = async (event: FormSubmitEvent<{ username: string; passwor
       description: 'Please sign in with your new credentials.',
       color: 'success'
     })
-  }
-  catch (error: any) {
+  } catch (error: any) {
     errorMessage.value = 'Registration failed'
     errorDescription.value = error.message || 'An unexpected error occurred. Please try again.'
-  }
-  finally {
+  } finally {
     isLoading.value = false
   }
 }
@@ -207,8 +233,7 @@ const fetchSetupStatus = async () => {
     const response = await fetch('/api/auth/setup-status')
     const data = await response.json()
     hasUsers.value = data.hasUsers
-  }
-  catch {
+  } catch {
     hasUsers.value = true
   }
 }

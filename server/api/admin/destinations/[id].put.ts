@@ -1,11 +1,10 @@
 import { z } from 'zod'
 import { updateDestination } from '../../../utils/storage'
-import { requireAuth, validateBody, slugSchema } from '../../../utils/helpers'
+import { requireAuth, validateBody } from '../../../utils/helpers'
 import type { S3Destination } from '../../../../app/types'
 
 const updateDestinationSchema = z.object({
   name: z.string().min(1).optional(),
-  slug: slugSchema.optional(),
   region: z.string().optional(),
   endpoint: z.string().min(1).optional(),
   accessKeyId: z.string().min(1).optional(),
@@ -21,7 +20,6 @@ function destinationToResponse(destination: S3Destination) {
   return {
     id: destination.id,
     name: destination.name,
-    slug: destination.slug,
     region: destination.region,
     endpoint: destination.endpoint,
     accessKeyId: destination.accessKeyId,
@@ -62,8 +60,7 @@ export default defineEventHandler(async (event) => {
     return {
       destination: destinationToResponse(destination)
     }
-  }
-  catch (error: any) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

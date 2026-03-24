@@ -1,39 +1,26 @@
-import { listObjects } from '../../../utils/s3'
-import { getDestinationBySlug } from '../../../utils/storage'
-import { ensureBucketAllowed } from '../../../utils/helpers'
+import { listObjects } from "../../../utils/s3";
+import {
+  requirePublicLink,
+  ensurePublicBucketAllowed,
+  ensurePublicPrefixAllowed,
+  ensurePublicListS3Exists,
+  publicListQuerySchema,
+} from "../../../utils/publicAccess";
+import { validateBody } from "../../../utils/helpers";
 
 export default defineEventHandler(async (event) => {
-  const query = getQuery(event)
-  const slug = query.slug as string
-  const bucketName = query.bucketName as string
-  const prefix = query.prefix as string
-  const delimiter = query.delimiter as string
+  const query = getQuery(event);
+  const data = validateBody(publicListQuerySchema, query);
 
-  if (!slug) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'slug parameter is required'
-    })
-  }
+  const { link, destination } = await requirePublicLink(data.hash);
 
-  const destination = await getDestinationBySlug(slug)
-  if (!destination) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Destination not found'
-    })
-  }
+  const prefix = data.prefix ?? "";
 
-  // Check if public access is allowed
-  if (!destination.allowPublicAccess) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Public access is not allowed for this destination'
-    })
-  }
+  ensurePublicBucketAllowed(link, data.bucketName);
+  ensurePublicPrefixAllowed(link, prefix);
 
-  ensureBucketAllowed(destination, bucketName)
+  await ensurePublicListS3Exists(destination, link, data.bucketName, prefix);
 
-  const result = await listObjects(destination, bucketName, prefix, delimiter)
-  return result
-})
+  const result = await listObjects(destination, data.bucketName, prefix);
+  return result;
+});

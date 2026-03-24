@@ -1,5 +1,5 @@
 {
-  "name": "BucketFlow",
+  "name": "bucket-flow",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,11 +13,11 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.988.0",
     "@aws-sdk/s3-request-presigner": "^3.988.0",
-    "@tanstack/vue-table": "^8.21.3",
     "@iconify-json/heroicons": "^1.2.3",
     "@iconify-json/lucide": "^1.2.90",
     "@iconify-json/simple-icons": "^1.2.70",
     "@nuxt/ui": "^4.4.0",
+    "archiver": "^7.0.1",
     "bcryptjs": "^3.0.3",
     "jsonwebtoken": "^9.0.3",
     "nuxt": "^4.3.1",
@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.1",
+    "@types/archiver": "^7.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "eslint": "^9.39.2",

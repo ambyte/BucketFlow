@@ -2,40 +2,52 @@
 
 [← Back to index](index.md)
 
-```
-├── app/                    # Nuxt app
-│   ├── components/         # Vue components (S3FileManager, AdminS3Config, etc.)
-│   ├── composables/        # useAuth, useS3
-│   ├── layouts/            # auth, default
-│   ├── middleware/         # auth
-│   ├── pages/              # index, admin, login, public
-│   └── types/              # User, S3Destination, FileItem, etc.
-├── server/                 # API routes
-│   ├── api/                # REST endpoints
-│   │   ├── admin/          # destinations, users
-│   │   ├── auth/           # login, me
-│   │   ├── destinations/  # available, test
-│   │   ├── public/        # public destinations, S3 list
-│   │   └── s3/            # buckets, list, objects, upload-url, folders
-│   └── utils/             # auth, storage, s3 helpers
-├── docs/                   # Documentation
-│   └── images/             # Screenshots
-├── Dockerfile
-└── docker-compose.yml
+Current repository structure at a high level:
+
+```text
+.
+├── app/                         # Nuxt application (UI)
+│   ├── components/
+│   │   ├── admin/               # Admin panel components
+│   │   ├── files/               # File manager and related modals
+│   │   └── common/
+│   ├── composables/             # useAuth, useAppContext, etc.
+│   ├── layouts/                 # auth, default
+│   ├── middleware/              # Client middleware
+│   ├── pages/                   # login, index, admin, public
+│   ├── utils/                   # UI utilities
+│   └── types/                   # Shared types
+├── server/                      # Nitro API and server logic
+│   ├── api/
+│   │   ├── auth/                # Authentication and setup
+│   │   ├── admin/               # Destination/user administration
+│   │   ├── destinations/        # Destination availability/testing
+│   │   ├── s3/                  # S3 operations (list, objects, folders, metadata)
+│   │   ├── links/               # Authenticated public-link management
+│   │   └── public/              # Public API by link hash
+│   ├── middleware/              # Server auth middleware
+│   ├── plugins/                 # Runtime/init plugins
+│   └── utils/                   # Auth, storage, S3, publicAccess, zip-download
+├── docs/                        # Docsify documentation
+│   ├── images/                  # Screenshots and assets
+│   ├── index.html               # Docsify entry
+│   ├── index.md                 # Docs home page
+│   └── sidebar.md               # Docs sidebar
+├── public/                      # Static files
+├── Dockerfile                   # Production image build
+└── docker-compose.yml           # Quick container launch
 ```
 
 ---
 
-## Supported S3 Providers
+## Technologies
 
-BucketFlow works with any S3-compatible API:
+- [Nuxt 4](../package.json)
+- [Nuxt UI](../package.json)
+- AWS SDK v3 for S3 API access
+- JWT + bcryptjs for authentication
+- Zod for API input validation
 
-- **AWS S3**
-- **Cloudflare R2**
-- **MinIO**
-- **Wasabi**
-- **DigitalOcean Spaces**
-- **Backblaze B2**
-- **Any S3-compatible endpoint**
+## S3 compatibility
 
-Configure the correct `endpoint` and `region` for each provider. Use **Force Path Style** for MinIO and similar self-hosted services.
+BucketFlow supports any S3-compatible endpoint with proper `endpoint`, `region`, and `forcePathStyle` configuration when needed.

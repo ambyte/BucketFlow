@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BucketFlow</title>
+  <link rel="icon" href="images/favicon.ico">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Description">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" id="docsify-theme-light"
+    href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+  <link rel="stylesheet" id="docsify-theme-dark"
+    href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css" disabled>
+  <script>
+    (function () {
+      var key = 'bucketflow-docs-theme'
+      var stored = localStorage.getItem(key)
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      var dark = stored === 'dark' || (stored !== 'light' && prefersDark)
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+      var lightEl = document.getElementById('docsify-theme-light')
+      var darkEl = document.getElementById('docsify-theme-dark')
+      if (lightEl && darkEl) {
+        lightEl.disabled = dark
+        darkEl.disabled = !dark
+      }
+    })()
+  </script>
+  <style>
+    :root {
+      --theme-color: #06a574;
+    }
+    html[data-theme="dark"] {
+      --mono-shade3 : hsl(var(--mono-hue), var(--mono-saturation), 10%);
+      --mono-shade2 : hsl(var(--mono-hue), var(--mono-saturation), 12%);
+      --mono-shade1 : hsl(var(--mono-hue), var(--mono-saturation), 12%);
+      --mono-base  : hsl(var(--mono-hue), var(--mono-saturation), 8%);
+      --mono-tint1 : hsl(var(--mono-hue), var(--mono-saturation), 22%);
+      --mono-tint2 : hsl(var(--mono-hue), var(--mono-saturation), 32%);
+      --mono-tint3 : hsl(var(--mono-hue), var(--mono-saturation), 40%);
+    }
+    .docs-theme-toggle {
+      position: fixed;
+      z-index: 2147483647;
+      bottom: max(0.75rem, env(safe-area-inset-bottom));
+      right: max(0.75rem, env(safe-area-inset-right));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0;
+      border: 1px solid rgba(127, 127, 127, 0.45);
+      border-radius: 0.5rem;
+      background: rgba(255, 255, 255, 0.92);
+      color: #1a1a1a;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      cursor: pointer;
+      line-height: 1;
+      pointer-events: auto;
+    }
+    html[data-theme="dark"] .docs-theme-toggle {
+      background: rgba(40, 40, 44, 0.94);
+      color: #f5f5f7;
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    }
+    .docs-theme-toggle:hover {
+      filter: brightness(0.97);
+    }
+    html[data-theme="dark"] .docs-theme-toggle:hover {
+      filter: brightness(1.08);
+    }
+    .docs-theme-toggle:focus-visible {
+      outline: 2px solid var(--theme-color, #06a574);
+      outline-offset: 2px;
+    }
+    .docs-theme-toggle svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+    html[data-theme="dark"] .docs-theme-toggle .icon-sun { display: block; }
+    html[data-theme="dark"] .docs-theme-toggle .icon-moon { display: none; }
+    html[data-theme="light"] .docs-theme-toggle .icon-sun { display: none; }
+    html[data-theme="light"] .docs-theme-toggle .icon-moon { display: block; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <button type="button" class="docs-theme-toggle" id="docs-theme-toggle" title="Toggle theme" aria-label="Toggle light and dark theme">
+    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+  <script>
+    window.$docsify = {
+      name: "BucketFlow",
+      repo: "https://github.com/ambyte/bucketflow",
+      homepage: "index.md",
+      loadSidebar: "sidebar.md",
+      auto2top: true,
+      maxLevel: 3,
+      subMaxLevel: 3,
+      themeable: {
+        readyTransition : true,
+        responsiveTables: true
+      }
+    }
+  </script>
+
+  <!-- Required -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>
+
+  <!-- Recommended -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
+  <script>
+    (function () {
+      var key = 'bucketflow-docs-theme'
+      var btn = document.getElementById('docs-theme-toggle')
+      if (!btn) return
+      btn.addEventListener('click', function () {
+        var html = document.documentElement
+        var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+        html.setAttribute('data-theme', next)
+        localStorage.setItem(key, next)
+        var lightEl = document.getElementById('docsify-theme-light')
+        var darkEl = document.getElementById('docsify-theme-dark')
+        if (lightEl && darkEl) {
+          var isDark = next === 'dark'
+          lightEl.disabled = isDark
+          darkEl.disabled = !isDark
+        }
+      })
+    })()
+  </script>
+</body>
+</html>

@@ -1,11 +1,10 @@
 import { z } from 'zod'
 import { getDestinations, createDestination } from '../../../utils/storage'
-import { requireAuth, validateBody, slugSchema } from '../../../utils/helpers'
+import { requireAuth, validateBody } from '../../../utils/helpers'
 import type { S3Destination } from '../../../../app/types'
 
 const createDestinationSchema = z.object({
   name: z.string().min(1),
-  slug: slugSchema,
   region: z.string().optional(),
   endpoint: z.string().min(1),
   accessKeyId: z.string().min(1),
@@ -29,20 +28,12 @@ export default defineEventHandler(async (event) => {
   if (method === 'POST') {
     const body = await readBody(event)
     const data = validateBody(createDestinationSchema, body)
-    const destinations = await getDestinations()
-    if (destinations.some(d => d.slug === data.slug)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Destination with this slug already exists'
-      })
-    }
 
     try {
       const destination = await createDestination(data as Omit<S3Destination, 'id' | 'createdAt' | 'updatedAt'>)
 
       return { destination: destination as S3Destination }
-    }
-    catch (error: any) {
+    } catch (error: any) {
       throw createError({
         statusCode: 400,
         statusMessage: error.message || 'Failed to create destination'
