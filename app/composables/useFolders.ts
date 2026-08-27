@@ -1,5 +1,6 @@
 import type { AppContext } from './useAppContext'
 import { showToastError, showToastSuccess } from '../utils/toast'
+import { isValidFolderName } from '../utils/validators'
 
 export function useFolders(
   ctx: AppContext,
@@ -12,7 +13,6 @@ export function useFolders(
   const {
     isPublic,
     apiCall,
-    getIdentifier,
     buildApiEndpoint,
     buildQuery,
     currentDestinationId,
@@ -31,33 +31,28 @@ export function useFolders(
       return false
     }
 
-    const key = currentPath.value + folderName + '/'
+    const name = folderName.trim()
+    if (!isValidFolderName(name)) {
+      showToastError(
+        'Invalid folder name',
+        'Folder name must not contain slashes'
+      )
+      return false
+    }
+
+    const key = currentPath.value + name + '/'
 
     try {
       const query = buildQuery(identifier, {
         bucketName: currentBucketName.value
       })
 
-      const { url } = await apiCall(
-        `${buildApiEndpoint('/s3/upload-url')}?${query}`,
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            key,
-            contentType: 'application/x-directory'
-          })
-        }
-      )
-
-      await fetch(url, {
-        method: 'PUT',
-        body: new Blob([]),
-        headers: {
-          'Content-Type': 'application/x-directory'
-        }
+      await apiCall(`${buildApiEndpoint('/s3/folders/create')}?${query}`, {
+        method: 'POST',
+        body: JSON.stringify({ key })
       })
 
-      showToastSuccess('Folder created', folderName)
+      showToastSuccess('Folder created', name)
 
       const idAfter = getFolderIdentifier()
       if (idAfter && currentBucketName.value) {

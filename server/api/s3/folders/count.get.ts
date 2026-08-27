@@ -19,5 +19,6 @@ export default defineEventHandler(async (event) => {
   const destination = await requireS3Destination(event, id)
   ensureBucketAllowed(destination, bucketName)
   const keys = await listAllKeysUnderPrefix(destination, bucketName, prefix)
-  return { count: keys.length - 1 }
+  const count = keys.filter(key => key !== prefix).length
+  return { count }
 })

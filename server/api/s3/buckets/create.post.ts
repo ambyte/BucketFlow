@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createBucket } from '../../../utils/s3'
+import { createBucket, getS3ErrorMessage, getS3HttpStatus } from '../../../utils/s3'
 import { requireAuth, requireS3Destination, validateBody, bucketNameSchema } from '../../../utils/helpers'
 
 const createBucketSchema = z.object({
@@ -27,10 +27,10 @@ export default defineEventHandler(async (event) => {
   try {
     await createBucket(destination, data.bucketName)
     return { success: true, message: 'Bucket created successfully' }
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw createError({
-      statusCode: 400,
-      statusMessage: error.message || 'Failed to create bucket'
+      statusCode: getS3HttpStatus(error),
+      statusMessage: getS3ErrorMessage(error) || 'Failed to create bucket'
     })
   }
 })

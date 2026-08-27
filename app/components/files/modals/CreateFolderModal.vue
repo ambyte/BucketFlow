@@ -8,6 +8,8 @@
       <UFormField
         label="Folder Name"
         required
+        :error="nameError"
+        help="Do not use slashes — nested folders are created by opening a folder first."
       >
         <UInput
           v-model="folderName"
@@ -26,7 +28,7 @@
       />
       <UButton
         color="primary"
-        :disabled="!folderName.trim()"
+        :disabled="!folderName.trim() || !!nameError"
         :loading="props.isCreating ?? false"
         label="Create"
         @click="handleSubmit"
@@ -36,6 +38,8 @@
 </template>
 
 <script setup lang="ts">
+import { isValidFolderName } from '../../../utils/validators'
+
 const props = defineProps<{
   open: boolean
   isCreating?: boolean
@@ -53,9 +57,19 @@ const isOpen = computed({
 
 const folderName = ref('')
 
+const nameError = computed(() => {
+  const name = folderName.value.trim()
+  if (!name) return undefined
+  if (!isValidFolderName(name)) {
+    return 'Folder name must not contain slashes'
+  }
+  return undefined
+})
+
 const handleSubmit = () => {
-  if (!folderName.value.trim()) return
-  emit('create', folderName.value.trim())
+  const name = folderName.value.trim()
+  if (!name || nameError.value) return
+  emit('create', name)
 }
 
 watch(

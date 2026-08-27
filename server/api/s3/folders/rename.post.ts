@@ -1,10 +1,10 @@
 import { renameFolder } from '../../../utils/s3'
-import { requireAuth, requireS3Destination, ensureBucketAllowed, validateBody } from '../../../utils/helpers'
+import { requireAuth, requireS3Destination, ensureBucketAllowed, validateBody, folderKeySchema } from '../../../utils/helpers'
 import { z } from 'zod'
 
 const schema = z.object({
-  oldPrefix: z.string().min(1),
-  newPrefix: z.string().min(1)
+  oldPrefix: folderKeySchema,
+  newPrefix: folderKeySchema
 })
 
 export default defineEventHandler(async (event) => {

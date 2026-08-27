@@ -196,6 +196,7 @@
 import { computed, ref, watch } from 'vue'
 import type { FileItem, FolderItem, TableRow, UploadProgress } from '../../types'
 import { isImage, isPDF, isTextFile, canPreview } from '../../utils/fileUtils'
+import { isValidFolderName } from '../../utils/validators'
 import { useErrorHandler } from '../../composables/useErrorHandler'
 
 const { handle: handleError } = useErrorHandler()
@@ -659,8 +660,13 @@ const handleRenameFolder = (folder: { name: string, Prefix: string }) => {
 
 const confirmRenameFolderWithName = async (newName: string) => {
   if (!folderToRename.value) return
+  const name = newName.trim()
+  if (!isValidFolderName(name)) {
+    handleError('Folder name must not contain slashes', 'Invalid folder name')
+    return
+  }
   const parentPath = folderToRename.value.Prefix.replace(/[^/]+\/$/, '')
-  const newPrefix = parentPath + newName + '/'
+  const newPrefix = parentPath + name + '/'
   isRenamingFolder.value = true
   const success = await s3.renameFolder(folderToRename.value.Prefix, newPrefix)
   isRenamingFolder.value = false

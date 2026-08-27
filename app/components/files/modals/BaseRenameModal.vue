@@ -9,6 +9,7 @@
         :label="label"
         :help="help"
         :required="required"
+        :error="fieldError"
       >
         <UInput
           v-model="value"
@@ -102,6 +103,12 @@ const isValid = computed(() => {
     return props.validate(trimmedValue)
   }
   return true
+})
+
+const fieldError = computed(() => {
+  const trimmedValue = value.value.trim()
+  if (!trimmedValue || isValid.value) return undefined
+  return props.errorMessage
 })
 
 const submit = () => {

@@ -40,6 +40,21 @@ export function isValidS3BucketName(name: string): boolean {
 }
 
 /**
+ * S3 folder name (single path segment)
+ * - Non-empty after trim
+ * - No slashes
+ * - Not `.` or `..`
+ */
+export function isValidFolderName(name: string): boolean {
+  if (!name || typeof name !== 'string') return false
+  const trimmed = name.trim()
+  if (!trimmed || trimmed.length > 255) return false
+  if (/[\\/]/.test(trimmed)) return false
+  if (trimmed === '.' || trimmed === '..') return false
+  return true
+}
+
+/**
  * String sanitization from XSS
  * Removes potentially dangerous HTML characters
  */

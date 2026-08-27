@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { renameBucket } from '../../../utils/s3'
+import { renameBucket, getS3ErrorMessage, getS3HttpStatus } from '../../../utils/s3'
 import { requireAuth, requireS3Destination, ensureBucketAllowed, validateBody, bucketNameSchema } from '../../../utils/helpers'
 import { updateDestination } from '../../../utils/storage'
 
@@ -45,10 +45,10 @@ export default defineEventHandler(async (event) => {
     }
 
     return { success: true, message: 'Bucket renamed successfully', newBucketName }
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw createError({
-      statusCode: 400,
-      statusMessage: error.message || 'Failed to rename bucket'
+      statusCode: getS3HttpStatus(error),
+      statusMessage: getS3ErrorMessage(error) || 'Failed to rename bucket'
     })
   }
 })

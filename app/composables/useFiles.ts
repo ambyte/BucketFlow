@@ -185,7 +185,7 @@ export function useFiles(ctx: AppContext) {
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve(xhr.response)
           } else {
-            reject(new Error('Upload failed'))
+            reject(new Error(`Upload failed (HTTP ${xhr.status})`))
           }
         })
 

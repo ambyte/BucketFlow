@@ -52,6 +52,34 @@ export const bucketNameSchema = z
     'Bucket name must not end with --table-s3'
   )
 
+/** Single path segment for an S3 folder (no slashes, not `.` / `..`). */
+export const folderNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Folder name is required')
+  .max(255, 'Folder name is too long')
+  .refine(
+    name => !/[\\/]/.test(name),
+    'Folder name must not contain slashes'
+  )
+  .refine(
+    name => name !== '.' && name !== '..',
+    'Invalid folder name'
+  )
+
+/** Full S3 folder key (prefix), e.g. `photos/2024/`. */
+export const folderKeySchema = z
+  .string()
+  .min(1, 'Folder key is required')
+  .transform(key => key.replace(/^\/+/, '').replace(/\/+$/, '') + '/')
+  .refine((key) => {
+    const segments = key.slice(0, -1).split('/')
+    return (
+      segments.length > 0
+      && segments.every(segment => folderNameSchema.safeParse(segment).success)
+    )
+  }, 'Invalid folder path')
+
 export function requireAuth(event: any, requiredRole?: string) {
   const auth = event.context.auth
 

@@ -11,12 +11,12 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const id = query.id as string
   const bucketName = query.bucketName as string
-  const prefix = query.prefix as string
+  const prefix = (query.prefix as string) || ''
 
-  if (!id) {
+  if (!id || !bucketName) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'id parameter is required'
+      statusMessage: 'id and bucketName parameters are required'
     })
   }
 
