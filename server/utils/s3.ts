@@ -966,6 +966,42 @@ export async function deleteFolder(
   return { deletedCount }
 }
 
+function collapseNestedPrefixes(prefixes: string[]): string[] {
+  const sorted = [...prefixes].sort((a, b) => a.length - b.length)
+  const unique: string[] = []
+  for (const prefix of sorted) {
+    if (unique.some(parent => prefix.startsWith(parent))) continue
+    unique.push(prefix)
+  }
+  return unique
+}
+
+export async function deleteObjectsAndFolders(
+  destination: S3Destination,
+  bucketName: string,
+  keys: string[],
+  prefixes: string[]
+): Promise<{ deletedCount: number }> {
+  const uniquePrefixes = collapseNestedPrefixes(prefixes)
+  const uniqueKeys = keys.filter(
+    key => !uniquePrefixes.some(prefix => key.startsWith(prefix))
+  )
+
+  let deletedCount = 0
+  for (const prefix of uniquePrefixes) {
+    const result = await deleteFolder(destination, bucketName, prefix)
+    deletedCount += result.deletedCount
+  }
+
+  for (let i = 0; i < uniqueKeys.length; i += DELETE_BATCH_SIZE) {
+    const batch = uniqueKeys.slice(i, i + DELETE_BATCH_SIZE)
+    await deleteObjects(destination, bucketName, batch)
+    deletedCount += batch.length
+  }
+
+  return { deletedCount }
+}
+
 export async function renameFile(
   destination: S3Destination,
   bucketName: string,

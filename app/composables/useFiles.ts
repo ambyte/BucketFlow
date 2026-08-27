@@ -256,6 +256,50 @@ export function useFiles(ctx: AppContext) {
     }
   }
 
+  const deleteSelected = async (
+    keys: string[],
+    prefixes: string[]
+  ): Promise<boolean> => {
+    if (isPublic) {
+      throw new Error('Delete is not available in public mode')
+    }
+    if (!currentDestinationId.value || !currentBucketName.value) return false
+    if (keys.length === 0 && prefixes.length === 0) return false
+
+    try {
+      const query = new URLSearchParams({
+        id: currentDestinationId.value,
+        bucketName: currentBucketName.value
+      })
+      const response = await apiCall(`/api/s3/objects/delete?${query}`, {
+        method: 'POST',
+        body: JSON.stringify({ keys, prefixes })
+      })
+
+      const fileCount = keys.length
+      const folderCount = prefixes.length
+      const parts: string[] = []
+      if (fileCount) parts.push(`${fileCount} file${fileCount === 1 ? '' : 's'}`)
+      if (folderCount) {
+        parts.push(`${folderCount} folder${folderCount === 1 ? '' : 's'}`)
+      }
+      showToastSuccess(
+        'Deleted',
+        `${parts.join(' and ')} (${response.deletedCount ?? 0} items)`
+      )
+
+      await fetchFiles(
+        currentDestinationId.value,
+        currentBucketName.value,
+        currentPath.value
+      )
+      return true
+    } catch (error: any) {
+      showToastError('Delete failed', error)
+      return false
+    }
+  }
+
   const renameFile = async (
     oldKey: string,
     newKey: string
@@ -403,6 +447,7 @@ export function useFiles(ctx: AppContext) {
     downloadZip,
     uploadFile,
     deleteFile,
+    deleteSelected,
     renameFile,
     getPreviewUrl
   }

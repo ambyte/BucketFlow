@@ -41,10 +41,22 @@
           size="sm"
           icon="i-heroicons-arrow-down-tray"
           :loading="zipDownloadLoading"
-          :disabled="zipDownloadLoading"
+          :disabled="zipDownloadLoading || bulkDeleteLoading"
           @click="$emit('download-selected')"
         >
           {{ zipDownloadLoading ? 'Preparing…' : 'Download' }}
+        </UButton>
+        <UButton
+          v-if="canDeleteSelected && (selectedCount > 0 || bulkDeleteLoading)"
+          variant="outline"
+          color="error"
+          size="sm"
+          icon="i-heroicons-trash"
+          :loading="bulkDeleteLoading"
+          :disabled="bulkDeleteLoading || zipDownloadLoading"
+          @click="$emit('delete-selected')"
+        >
+          {{ bulkDeleteLoading ? 'Deleting…' : 'Delete' }}
         </UButton>
         <UButton
           v-if="canUpload"
@@ -101,11 +113,15 @@ interface Props {
   viewMode: 'grid' | 'list'
   selectedCount?: number
   zipDownloadLoading?: boolean
+  canDeleteSelected?: boolean
+  bulkDeleteLoading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedCount: 0,
-  zipDownloadLoading: false
+  zipDownloadLoading: false,
+  canDeleteSelected: false,
+  bulkDeleteLoading: false
 })
 
 defineEmits<{
@@ -115,6 +131,7 @@ defineEmits<{
   'public-link-click': []
   'toggle-view': []
   'download-selected': []
+  'delete-selected': []
 }>()
 
 const pathParts = computed(() => {

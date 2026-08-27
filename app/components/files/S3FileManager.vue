@@ -27,12 +27,15 @@
           :view-mode="viewMode"
           :selected-count="selectedIds.length"
           :zip-download-loading="zipDownloadLoading"
+          :can-delete-selected="effectiveIsEditor"
+          :bulk-delete-loading="bulkDeleteLoading"
           @breadcrumb-click="handleBreadcrumbClick"
           @upload-click="showUpload = true"
           @create-folder-click="showCreateFolder = true"
           @public-link-click="showPublicLinkModal = true"
           @toggle-view="viewMode = viewMode === 'grid' ? 'list' : 'grid'"
           @download-selected="handleDownloadSelected"
+          @delete-selected="handleDeleteSelected"
         />
 
         <!-- Content Component -->
@@ -140,6 +143,15 @@
       :is-deleting="isDeletingFolder"
       @confirm="confirmDeleteFolder"
       @cancel="folderToDelete = null"
+    />
+    <DeleteSelectedModal
+      v-model:open="showDeleteSelectedConfirm"
+      :file-count="selectedFileCount"
+      :folder-count="selectedFolderCount"
+      :item-names="selectedItemNames"
+      :is-deleting="bulkDeleteLoading"
+      @confirm="confirmDeleteSelected"
+      @cancel="showDeleteSelectedConfirm = false"
     />
     <RenameFolderModal
       v-model:open="showRenameFolder"
@@ -463,6 +475,8 @@ function rowSelectionId(row: TableRow): string {
 const selectedIds = ref<string[]>([])
 
 const zipDownloadLoading = ref(false)
+const bulkDeleteLoading = ref(false)
+const showDeleteSelectedConfirm = ref(false)
 
 const selectAllCheckboxValue = computed(
   (): boolean | 'indeterminate' => {
@@ -493,6 +507,33 @@ function handleToggleSelectAll() {
   }
 }
 
+function getSelectedKeysAndPrefixes() {
+  const keys: string[] = []
+  const prefixes: string[] = []
+  const names: string[] = []
+  for (const id of selectedIds.value) {
+    const row = tableRows.value.find(r => rowSelectionId(r) === id)
+    if (!row) continue
+    names.push(row.name)
+    if (row.isFolder) {
+      const p = row.Prefix
+      if (p) prefixes.push(p)
+    } else {
+      const k = (row as FileItem).Key
+      if (k) keys.push(k)
+    }
+  }
+  return { keys, prefixes, names }
+}
+
+const selectedFileCount = computed(
+  () => getSelectedKeysAndPrefixes().keys.length
+)
+const selectedFolderCount = computed(
+  () => getSelectedKeysAndPrefixes().prefixes.length
+)
+const selectedItemNames = computed(() => getSelectedKeysAndPrefixes().names)
+
 function folderNameFromPrefix(prefix: string): string {
   const parts = prefix.replace(/\/$/, '').split('/').filter(Boolean)
   return parts.length ? parts[parts.length - 1]! : 'folder'
@@ -514,19 +555,7 @@ function zipArchiveBaseName(prefixes: string[], keys: string[]): string {
 }
 
 const handleDownloadSelected = async () => {
-  const keys: string[] = []
-  const prefixes: string[] = []
-  for (const id of selectedIds.value) {
-    const row = tableRows.value.find(r => rowSelectionId(r) === id)
-    if (!row) continue
-    if (row.isFolder) {
-      const p = row.Prefix
-      if (p) prefixes.push(p)
-    } else {
-      const k = (row as FileItem).Key
-      if (k) keys.push(k)
-    }
-  }
+  const { keys, prefixes } = getSelectedKeysAndPrefixes()
 
   if (prefixes.length === 0 && keys.length === 1) {
     const key = keys[0]!
@@ -545,6 +574,28 @@ const handleDownloadSelected = async () => {
     await s3.downloadZip(keys, prefixes, currentPath.value, `${zipName}.zip`)
   } finally {
     zipDownloadLoading.value = false
+  }
+}
+
+const handleDeleteSelected = () => {
+  if (!effectiveIsEditor.value) return
+  const { keys, prefixes } = getSelectedKeysAndPrefixes()
+  if (keys.length === 0 && prefixes.length === 0) return
+  showDeleteSelectedConfirm.value = true
+}
+
+const confirmDeleteSelected = async () => {
+  const { keys, prefixes } = getSelectedKeysAndPrefixes()
+  if (keys.length === 0 && prefixes.length === 0) return
+  bulkDeleteLoading.value = true
+  try {
+    const success = await s3.deleteSelected(keys, prefixes)
+    if (success) {
+      selectedIds.value = []
+      showDeleteSelectedConfirm.value = false
+    }
+  } finally {
+    bulkDeleteLoading.value = false
   }
 }
 
