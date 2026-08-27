@@ -309,41 +309,61 @@ const onPublicLinkSaved = () => {
 const getIdentifier = () =>
   props.selectedDestinationHash || props.selectedDestinationId
 
-watch(
-  () => getIdentifier(),
-  async (identifier) => {
-    if (!identifier) {
-      selectedBucketName.value = undefined
-      availableBuckets.value = []
-      hasUsedInitialPath.value = false
-      return
-    }
+const loadBuckets = async (options?: {
+  resetSelection?: boolean
+  ensureBucket?: string
+  showLoading?: boolean
+}) => {
+  const identifier = getIdentifier()
+  if (!identifier) {
+    selectedBucketName.value = undefined
+    availableBuckets.value = []
+    hasUsedInitialPath.value = false
+    return
+  }
 
-    const preserveBucket = isPublicMode.value && props.selectedBucketName
+  const resetSelection = options?.resetSelection ?? false
+  const showLoading = options?.showLoading ?? true
+  const preserveBucket = isPublicMode.value && props.selectedBucketName
+
+  if (resetSelection) {
     if (!preserveBucket) selectedBucketName.value = undefined
     hasUsedInitialPath.value = false
+  }
 
-    isLoadingBuckets.value = true
-    try {
-      const buckets = await s3.fetchBuckets(identifier)
-      availableBuckets.value = buckets
-
-      const bucketToUse
-        = preserveBucket && buckets.includes(props.selectedBucketName!)
-          ? props.selectedBucketName!
-          : buckets.length > 0
-            ? buckets[0]
-            : null
-
-      if (bucketToUse && !selectedBucketName.value) {
-        selectedBucketName.value = bucketToUse
-      }
-    } catch (error) {
-      handleError(error, 'Error loading buckets')
-    } finally {
-      isLoadingBuckets.value = false
+  if (showLoading) isLoadingBuckets.value = true
+  try {
+    const buckets: string[] = [...(await s3.fetchBuckets(identifier))]
+    if (options?.ensureBucket && !buckets.includes(options.ensureBucket)) {
+      buckets.push(options.ensureBucket)
     }
-  },
+    availableBuckets.value = buckets
+
+    if (!resetSelection) return
+
+    const bucketToUse
+      = preserveBucket && buckets.includes(props.selectedBucketName!)
+        ? props.selectedBucketName!
+        : buckets.length > 0
+          ? buckets[0]
+          : null
+
+    if (bucketToUse && !selectedBucketName.value) {
+      selectedBucketName.value = bucketToUse
+    }
+  } catch (error) {
+    handleError(error, 'Error loading buckets')
+  } finally {
+    if (showLoading) isLoadingBuckets.value = false
+  }
+}
+
+const reloadBuckets = (ensureBucket?: string) =>
+  loadBuckets({ resetSelection: false, ensureBucket, showLoading: false })
+
+watch(
+  () => getIdentifier(),
+  () => loadBuckets({ resetSelection: true }),
   { immediate: true }
 )
 
@@ -818,4 +838,8 @@ const handleSaveMetadata = async (
   metadataEntries.value = entries
   await saveMetadata()
 }
+
+defineExpose({
+  reloadBuckets
+})
 </script>

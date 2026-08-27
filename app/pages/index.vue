@@ -65,6 +65,7 @@
     </div>
 
     <S3FileManager
+      ref="fileManagerRef"
       v-model:selected-bucket-name="selectedBucketName"
       :selected-destination-id="selectedDestinationId"
       :can-create-public-link="canCreatePublicLink"
@@ -91,6 +92,9 @@ const {
   createBucket
 } = useAppContext()
 
+const fileManagerRef = ref<{
+  reloadBuckets: (ensureBucket?: string) => Promise<void>
+} | null>(null)
 const selectedDestinationId = ref<string | undefined>(undefined)
 const selectedBucketName = ref<string | undefined>(undefined)
 const showCreateBucket = ref(false)
@@ -137,9 +141,10 @@ const handleCreateBucket = async () => {
   isCreatingBucket.value = false
 
   if (success) {
+    const createdName = newBucketName.value
     showCreateBucket.value = false
     newBucketName.value = ''
-    await handleDestinationChange(selectedDestinationId.value)
+    await fileManagerRef.value?.reloadBuckets(createdName)
   }
 }
 
