@@ -355,7 +355,18 @@ const loadBuckets = async (options?: {
     }
     availableBuckets.value = buckets
 
-    if (!resetSelection) return
+    if (!resetSelection) {
+      if (
+        selectedBucketName.value
+        && !buckets.includes(selectedBucketName.value)
+      ) {
+        selectedBucketName.value = buckets[0]
+        if (!buckets[0]) {
+          s3.clearListing()
+        }
+      }
+      return
+    }
 
     const bucketToUse
       = preserveBucket && buckets.includes(props.selectedBucketName!)
@@ -376,6 +387,9 @@ const loadBuckets = async (options?: {
 
 const reloadBuckets = (ensureBucket?: string) =>
   loadBuckets({ resetSelection: false, ensureBucket, showLoading: false })
+
+const refreshBuckets = () =>
+  loadBuckets({ resetSelection: false, showLoading: true })
 
 watch(
   () => getIdentifier(),
@@ -886,6 +900,7 @@ const handleSaveMetadata = async (
 }
 
 defineExpose({
-  reloadBuckets
+  reloadBuckets,
+  refreshBuckets
 })
 </script>

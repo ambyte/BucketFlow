@@ -10,6 +10,18 @@
         class="min-w-[280px]"
         @update:model-value="(value) => handleDestinationChange(value as string | null)"
       />
+      <UTooltip text="Refresh buckets">
+        <UButton
+          variant="outline"
+          color="neutral"
+          icon="i-heroicons-arrow-path"
+          size="lg"
+          square
+          :disabled="!selectedDestinationId"
+          loading-auto
+          @click="handleRefreshBuckets"
+        />
+      </UTooltip>
       <UButton
         v-if="isAdmin && selectedDestinationId"
         variant="solid"
@@ -94,6 +106,7 @@ const {
 
 const fileManagerRef = ref<{
   reloadBuckets: (ensureBucket?: string) => Promise<void>
+  refreshBuckets: () => Promise<void>
 } | null>(null)
 const selectedDestinationId = ref<string | undefined>(undefined)
 const selectedBucketName = ref<string | undefined>(undefined)
@@ -131,6 +144,10 @@ const onPublicLinkSaved = () => {
 const handleDestinationChange = (destinationId: string | null) => {
   selectedBucketName.value = undefined
   if (!destinationId) return
+}
+
+const handleRefreshBuckets = async () => {
+  await fileManagerRef.value?.refreshBuckets()
 }
 
 const handleCreateBucket = async () => {
