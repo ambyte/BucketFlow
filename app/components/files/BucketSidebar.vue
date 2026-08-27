@@ -1,7 +1,8 @@
 <template>
   <aside
     v-if="show"
-    class="w-64 flex flex-col overflow-hidden min-h-max"
+    class="relative flex flex-col overflow-hidden min-h-max shrink-0"
+    :style="{ width: `${sidebarWidth}px` }"
   >
     <div class="flex-1 overflow-y-auto border-r border-default">
       <div class="p-4">
@@ -40,7 +41,18 @@
                 name="i-heroicons-folder"
                 class="w-4 h-4 text-primary shrink-0"
               />
-              <span class="truncate text-default">{{ bucket }}</span>
+              <UTooltip
+                :text="bucket"
+                :delay-duration="200"
+                :content="{ side: 'right' }"
+                :ui="{
+                  content: 'h-auto max-w-xs',
+                  text: 'whitespace-normal break-all'
+                }"
+                class="min-w-0 flex-1 text-left"
+              >
+                <span class="block truncate text-default">{{ bucket }}</span>
+              </UTooltip>
               <div
                 v-if="canRename || canDelete"
                 class="ml-auto shrink-0 flex items-center"
@@ -77,10 +89,23 @@
         </div>
       </div>
     </div>
+    <div
+      class="absolute inset-y-0 right-0 z-10 w-1.5 cursor-col-resize hover:bg-primary/40 active:bg-primary/60"
+      :class="{ 'bg-primary/50': isResizing }"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize buckets panel"
+      @mousedown.prevent="onResizeStart"
+    />
   </aside>
 </template>
 
 <script setup lang="ts">
+const STORAGE_KEY = 'bucketflow-bucket-sidebar-width'
+const MIN_WIDTH = 180
+const MAX_WIDTH = 560
+const DEFAULT_WIDTH = 256
+
 defineProps<{
   show: boolean
   buckets: string[]
@@ -95,4 +120,56 @@ defineEmits<{
   rename: [bucket: string]
   delete: [bucket: string]
 }>()
+
+const sidebarWidth = ref(DEFAULT_WIDTH)
+const isResizing = ref(false)
+
+let moveListener: ((event: MouseEvent) => void) | null = null
+let upListener: (() => void) | null = null
+
+onMounted(() => {
+  const saved = Number(localStorage.getItem(STORAGE_KEY))
+  if (Number.isFinite(saved) && saved >= MIN_WIDTH) {
+    sidebarWidth.value = Math.min(MAX_WIDTH, saved)
+  }
+})
+
+function clearResizeListeners() {
+  if (moveListener) {
+    document.removeEventListener('mousemove', moveListener)
+    moveListener = null
+  }
+  if (upListener) {
+    document.removeEventListener('mouseup', upListener)
+    upListener = null
+  }
+  document.body.style.removeProperty('cursor')
+  document.body.style.removeProperty('user-select')
+  isResizing.value = false
+}
+
+function onResizeStart(event: MouseEvent) {
+  const startX = event.clientX
+  const startWidth = sidebarWidth.value
+  isResizing.value = true
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+
+  moveListener = (moveEvent: MouseEvent) => {
+    const next = startWidth + (moveEvent.clientX - startX)
+    sidebarWidth.value = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, next))
+  }
+
+  upListener = () => {
+    localStorage.setItem(STORAGE_KEY, String(sidebarWidth.value))
+    clearResizeListeners()
+  }
+
+  document.addEventListener('mousemove', moveListener)
+  document.addEventListener('mouseup', upListener)
+}
+
+onBeforeUnmount(() => {
+  clearResizeListeners()
+})
 </script>
