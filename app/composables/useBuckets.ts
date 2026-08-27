@@ -60,9 +60,31 @@ export function useBuckets(ctx: AppContext) {
     }
   }
 
+  const deleteBucket = async (
+    destinationId: string,
+    bucketName: string
+  ): Promise<boolean> => {
+    if (isPublic) {
+      throw new Error('Delete bucket is not available in public mode')
+    }
+    try {
+      const query = new URLSearchParams({ id: destinationId })
+      await apiCall(`/api/s3/buckets/delete?${query}`, {
+        method: 'POST',
+        body: JSON.stringify({ bucketName })
+      })
+      showToastSuccess('Bucket deleted', bucketName)
+      return true
+    } catch (error) {
+      showToastError('Failed to delete bucket', error)
+      return false
+    }
+  }
+
   return {
     fetchBuckets,
     createBucket,
-    renameBucket
+    renameBucket,
+    deleteBucket
   }
 }

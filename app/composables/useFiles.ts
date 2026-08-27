@@ -386,8 +386,17 @@ export function useFiles(ctx: AppContext) {
     }
   }
 
+  const clearListing = () => {
+    files.value = []
+    folders.value = []
+    metadataColumns.value = []
+    currentPath.value = ''
+    currentBucketName.value = null
+  }
+
   return {
     fetchFiles,
+    clearListing,
     navigateToFolder,
     navigateUp,
     downloadFile,

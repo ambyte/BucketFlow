@@ -249,6 +249,21 @@ export async function deletePublicLink(id: string): Promise<boolean> {
   return true
 }
 
+export async function deletePublicLinksForBucket(
+  destinationId: string,
+  bucketName: string
+): Promise<number> {
+  const links = await getPublicLinks()
+  const filtered = links.filter(
+    l => !(l.destinationId === destinationId && l.bucketName === bucketName)
+  )
+  const removed = links.length - filtered.length
+  if (removed > 0) {
+    await savePublicLinks(filtered)
+  }
+  return removed
+}
+
 export async function getPublicLinkById(
   id: string
 ): Promise<PublicLink | null> {

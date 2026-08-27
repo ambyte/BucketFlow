@@ -12,10 +12,13 @@ import {
   CreateBucketCommand,
   DeleteBucketCommand,
   ListObjectVersionsCommand,
+  ListMultipartUploadsCommand,
+  AbortMultipartUploadCommand,
   type CreateBucketCommandInput,
   type HeadObjectCommandOutput,
   type ListObjectsV2CommandOutput,
-  type ListObjectVersionsCommandOutput
+  type ListObjectVersionsCommandOutput,
+  type ListMultipartUploadsCommandOutput
 } from '@aws-sdk/client-s3'
 import { createHash } from 'node:crypto'
 import { createError } from 'h3'
@@ -1025,10 +1028,104 @@ export async function copyObjectCrossBucket(
   )
 }
 
+async function abortIncompleteMultipartUploads(
+  destination: S3Destination,
+  bucketName: string
+): Promise<void> {
+  const client = getS3Client(destination)
+  try {
+    let keyMarker: string | undefined
+    let uploadIdMarker: string | undefined
+    do {
+      const response = await send<ListMultipartUploadsCommandOutput>(
+        client,
+        new ListMultipartUploadsCommand({
+          Bucket: bucketName,
+          KeyMarker: keyMarker,
+          UploadIdMarker: uploadIdMarker
+        })
+      )
+      for (const upload of response.Uploads || []) {
+        if (!upload.Key || !upload.UploadId) continue
+        await send(
+          client,
+          new AbortMultipartUploadCommand({
+            Bucket: bucketName,
+            Key: upload.Key,
+            UploadId: upload.UploadId
+          })
+        )
+      }
+      if (!response.IsTruncated) break
+      keyMarker = response.NextKeyMarker
+      uploadIdMarker = response.NextUploadIdMarker
+    } while (keyMarker)
+  } catch (error) {
+    if (!isVersionsListingUnsupported(error)) throw error
+  }
+}
+
+async function emptyBucket(
+  destination: S3Destination,
+  bucketName: string
+): Promise<void> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const keys = await listAllKeysUnderPrefix(destination, bucketName, '')
+    const files = keys.filter(key => !key.endsWith('/'))
+    const dirs = keys
+      .filter(key => key.endsWith('/'))
+      .sort((a, b) => b.length - a.length)
+
+    if (files.length === 0 && dirs.length === 0) break
+
+    for (let i = 0; i < files.length; i += DELETE_BATCH_SIZE) {
+      await deleteObjects(
+        destination,
+        bucketName,
+        files.slice(i, i + DELETE_BATCH_SIZE)
+      )
+    }
+    for (let i = 0; i < dirs.length; i += DELETE_BATCH_SIZE) {
+      await deleteObjects(
+        destination,
+        bucketName,
+        dirs.slice(i, i + DELETE_BATCH_SIZE)
+      )
+    }
+    for (const dir of dirs) {
+      try {
+        await deleteObject(destination, bucketName, dir)
+      } catch (error) {
+        if (getS3HttpStatus(error, 0) !== 404) throw error
+      }
+    }
+  }
+
+  try {
+    const versions = await listObjectVersionsUnderPrefix(
+      destination,
+      bucketName,
+      ''
+    )
+    for (let i = 0; i < versions.length; i += DELETE_BATCH_SIZE) {
+      await deleteObjects(
+        destination,
+        bucketName,
+        versions.slice(i, i + DELETE_BATCH_SIZE)
+      )
+    }
+  } catch (error) {
+    if (!isVersionsListingUnsupported(error)) throw error
+  }
+
+  await abortIncompleteMultipartUploads(destination, bucketName)
+}
+
 export async function deleteBucket(
   destination: S3Destination,
   bucketName: string
 ): Promise<void> {
+  await emptyBucket(destination, bucketName)
   const client = getS3Client(destination)
   await send(
     client,

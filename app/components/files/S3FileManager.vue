@@ -8,8 +8,10 @@
         :selected-bucket="selectedBucketName"
         :loading="isLoadingBuckets"
         :can-rename="canRenameBucket"
+        :can-delete="canDeleteBucket"
         @select="handleBucketClick"
         @rename="handleRenameBucketClick"
+        @delete="handleDeleteBucketClick"
       />
 
       <!-- Main Content Area -->
@@ -160,6 +162,13 @@
       @rename="confirmRenameBucketWithName"
       @cancel="bucketToRename = null"
     />
+    <DeleteBucketModal
+      v-model:open="showDeleteBucket"
+      :bucket-name="bucketToDelete ?? ''"
+      :is-deleting="isDeletingBucket"
+      @confirm="confirmDeleteBucket"
+      @cancel="bucketToDelete = null"
+    />
     <MetadataModal
       v-model:open="showMetadata"
       :file-name="metadataItem?.name ?? ''"
@@ -253,6 +262,9 @@ const canCreateFolder = computed(
 const canRenameBucket = computed(
   () => !!props.selectedDestinationId && isAdmin.value && !props.readOnly
 )
+const canDeleteBucket = computed(
+  () => !!props.selectedDestinationId && isAdmin.value && !props.readOnly
+)
 
 const selectedBucketName = ref<string | undefined>(props.selectedBucketName)
 const availableBuckets = ref<string[]>([])
@@ -286,6 +298,10 @@ const isRenamingFile = ref(false)
 const showRenameBucket = ref(false)
 const bucketToRename = ref<string | null>(null)
 const isRenamingBucket = ref(false)
+
+const showDeleteBucket = ref(false)
+const bucketToDelete = ref<string | null>(null)
+const isDeletingBucket = ref(false)
 
 const showPublicLinkModal = ref(false)
 const showMetadata = ref(false)
@@ -757,6 +773,36 @@ const closeMetadata = () => {
 const handleRenameBucketClick = (bucketName: string) => {
   bucketToRename.value = bucketName
   showRenameBucket.value = true
+}
+
+const handleDeleteBucketClick = (bucketName: string) => {
+  bucketToDelete.value = bucketName
+  showDeleteBucket.value = true
+}
+
+const confirmDeleteBucket = async () => {
+  if (!bucketToDelete.value || !props.selectedDestinationId) return
+  const deletedName = bucketToDelete.value
+  isDeletingBucket.value = true
+  const success = await s3.deleteBucket(
+    props.selectedDestinationId,
+    deletedName
+  )
+  isDeletingBucket.value = false
+  if (!success) return
+
+  showDeleteBucket.value = false
+  bucketToDelete.value = null
+
+  const remaining = availableBuckets.value.filter(name => name !== deletedName)
+  availableBuckets.value = remaining
+
+  if (selectedBucketName.value === deletedName) {
+    selectedBucketName.value = remaining[0]
+    if (!remaining[0]) {
+      s3.clearListing()
+    }
+  }
 }
 
 const confirmRenameBucketWithName = async (newName: string) => {

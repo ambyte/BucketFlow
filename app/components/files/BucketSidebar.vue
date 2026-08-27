@@ -41,20 +41,37 @@
                 class="w-4 h-4 text-primary shrink-0"
               />
               <span class="truncate text-default">{{ bucket }}</span>
-              <UTooltip
-                v-if="canRename"
-                text="Rename bucket"
-                class="ml-auto shrink-0"
+              <div
+                v-if="canRename || canDelete"
+                class="ml-auto shrink-0 flex items-center"
               >
-                <UButton
-                  variant="ghost"
-                  color="neutral"
-                  icon="i-heroicons-pencil-square"
-                  size="xs"
-                  class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                  @click.stop="$emit('rename', bucket)"
-                />
-              </UTooltip>
+                <UTooltip
+                  v-if="canRename"
+                  text="Rename bucket"
+                >
+                  <UButton
+                    variant="ghost"
+                    color="neutral"
+                    icon="i-heroicons-pencil-square"
+                    size="xs"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    @click.stop="$emit('rename', bucket)"
+                  />
+                </UTooltip>
+                <UTooltip
+                  v-if="canDelete"
+                  text="Delete bucket"
+                >
+                  <UButton
+                    variant="ghost"
+                    color="error"
+                    icon="i-heroicons-trash"
+                    size="xs"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    @click.stop="$emit('delete', bucket)"
+                  />
+                </UTooltip>
+              </div>
             </button>
           </div>
         </div>
@@ -70,10 +87,12 @@ defineProps<{
   selectedBucket?: string
   loading: boolean
   canRename: boolean
+  canDelete: boolean
 }>()
 
 defineEmits<{
   select: [bucket: string]
   rename: [bucket: string]
+  delete: [bucket: string]
 }>()
 </script>
