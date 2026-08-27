@@ -38,6 +38,31 @@
         label="Manage Public Links"
         @click="showPublicLinksModal = true"
       />
+      <div
+        v-if="isAdmin && selectedDestinationId"
+        class="ml-auto flex items-center gap-2"
+      >
+        <UTooltip text="Rename selected bucket">
+          <UButton
+            variant="outline"
+            color="neutral"
+            icon="i-heroicons-pencil-square"
+            label="Rename Bucket"
+            :disabled="!selectedBucketName"
+            @click="fileManagerRef?.openRenameBucket()"
+          />
+        </UTooltip>
+        <UTooltip text="Delete selected bucket">
+          <UButton
+            variant="outline"
+            color="error"
+            icon="i-heroicons-trash"
+            label="Delete Bucket"
+            :disabled="!selectedBucketName"
+            @click="fileManagerRef?.openDeleteBucket()"
+          />
+        </UTooltip>
+      </div>
       <UModal
         v-model:open="showCreateBucket"
         title="Create New Bucket"
@@ -107,6 +132,8 @@ const {
 const fileManagerRef = ref<{
   reloadBuckets: (ensureBucket?: string) => Promise<void>
   refreshBuckets: () => Promise<void>
+  openRenameBucket: (bucketName?: string) => void
+  openDeleteBucket: (bucketName?: string) => void
 } | null>(null)
 const selectedDestinationId = ref<string | undefined>(undefined)
 const selectedBucketName = ref<string | undefined>(undefined)

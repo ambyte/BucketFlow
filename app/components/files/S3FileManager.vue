@@ -8,11 +8,7 @@
         :bucket-sizes="bucketSizes"
         :selected-bucket="selectedBucketName"
         :loading="isLoadingBuckets"
-        :can-rename="canRenameBucket"
-        :can-delete="canDeleteBucket"
         @select="handleBucketClick"
-        @rename="handleRenameBucketClick"
-        @delete="handleDeleteBucketClick"
       />
 
       <!-- Main Content Area -->
@@ -260,8 +256,8 @@ const metadataColumns = computed(() => s3.metadataColumns.value || [])
 const isLoading = computed(() => s3.isLoading.value)
 const uploadProgress = computed(() => s3.uploadProgress.value)
 
-const { isEditor, isAdmin } = props.readOnly
-  ? { isEditor: computed(() => false), isAdmin: computed(() => false) }
+const { isEditor } = props.readOnly
+  ? { isEditor: computed(() => false) }
   : useAuth()
 const effectiveIsEditor = computed(() => !props.readOnly && isEditor.value)
 const canUpload = computed(
@@ -271,12 +267,6 @@ const canCreateFolder = computed(
   () =>
     effectiveIsEditor.value
     || (isPublicMode.value && props.allowFolderCreation)
-)
-const canRenameBucket = computed(
-  () => !!props.selectedDestinationId && isAdmin.value && !props.readOnly
-)
-const canDeleteBucket = computed(
-  () => !!props.selectedDestinationId && isAdmin.value && !props.readOnly
 )
 
 const selectedBucketName = ref<string | undefined>(props.selectedBucketName)
@@ -839,13 +829,17 @@ const closeMetadata = () => {
   metadataEntries.value = []
 }
 
-const handleRenameBucketClick = (bucketName: string) => {
-  bucketToRename.value = bucketName
+const handleRenameBucketClick = (bucketName?: string) => {
+  const name = bucketName || selectedBucketName.value
+  if (!name) return
+  bucketToRename.value = name
   showRenameBucket.value = true
 }
 
-const handleDeleteBucketClick = (bucketName: string) => {
-  bucketToDelete.value = bucketName
+const handleDeleteBucketClick = (bucketName?: string) => {
+  const name = bucketName || selectedBucketName.value
+  if (!name) return
+  bucketToDelete.value = name
   showDeleteBucket.value = true
 }
 
@@ -965,6 +959,8 @@ const handleSaveMetadata = async (
 
 defineExpose({
   reloadBuckets,
-  refreshBuckets
+  refreshBuckets,
+  openRenameBucket: handleRenameBucketClick,
+  openDeleteBucket: handleDeleteBucketClick
 })
 </script>

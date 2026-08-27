@@ -30,7 +30,7 @@
           <div
             v-for="bucket in buckets"
             :key="bucket"
-            class="group flex items-center gap-1 w-full rounded-md transition-colors"
+            class="flex items-center gap-1 w-full rounded-md transition-colors"
             :class="{ 'bg-accented': selectedBucket === bucket }"
           >
             <button
@@ -59,38 +59,6 @@
               >
                 {{ formatFileSize(bucketSizes[bucket] ?? 0) }}
               </span>
-              <div
-                v-if="canRename || canDelete"
-                class="shrink-0 flex items-center"
-                :class="{ 'ml-auto': bucketSizes[bucket] == null }"
-              >
-                <UTooltip
-                  v-if="canRename"
-                  text="Rename bucket"
-                >
-                  <UButton
-                    variant="ghost"
-                    color="neutral"
-                    icon="i-heroicons-pencil-square"
-                    size="xs"
-                    class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                    @click.stop="$emit('rename', bucket)"
-                  />
-                </UTooltip>
-                <UTooltip
-                  v-if="canDelete"
-                  text="Delete bucket"
-                >
-                  <UButton
-                    variant="ghost"
-                    color="error"
-                    icon="i-heroicons-trash"
-                    size="xs"
-                    class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                    @click.stop="$emit('delete', bucket)"
-                  />
-                </UTooltip>
-              </div>
             </button>
           </div>
         </div>
@@ -121,16 +89,12 @@ withDefaults(defineProps<{
   bucketSizes?: Record<string, number>
   selectedBucket?: string
   loading: boolean
-  canRename: boolean
-  canDelete: boolean
 }>(), {
   bucketSizes: () => ({})
 })
 
 defineEmits<{
   select: [bucket: string]
-  rename: [bucket: string]
-  delete: [bucket: string]
 }>()
 
 const sidebarWidth = ref(DEFAULT_WIDTH)
