@@ -1,8 +1,8 @@
-import { listBuckets } from '../../../utils/s3'
+import { getBucketSizes, listBuckets } from '../../../utils/s3'
 import { requireAuth, requireS3Destination } from '../../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
-  requireAuth(event)
+  const auth = requireAuth(event)
 
   const query = getQuery(event)
   const id = query.id as string
@@ -20,5 +20,10 @@ export default defineEventHandler(async (event) => {
     : undefined
   const buckets = await listBuckets(destination, bucketFilter)
 
-  return { buckets }
+  if (auth.role !== 'admin') {
+    return { buckets }
+  }
+
+  const sizes = await getBucketSizes(destination, buckets)
+  return { buckets, sizes }
 })

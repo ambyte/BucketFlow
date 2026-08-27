@@ -10,7 +10,10 @@ export function useBuckets(ctx: AppContext) {
       const response = await apiCall(
         `${buildApiEndpoint('/s3/buckets')}?${query}`
       )
-      return response.buckets || []
+      return {
+        buckets: (response.buckets || []) as string[],
+        sizes: response.sizes as Record<string, number> | undefined
+      }
     } catch (error) {
       showToastError('Error', error)
       throw error

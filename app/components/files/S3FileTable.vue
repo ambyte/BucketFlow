@@ -119,7 +119,7 @@
           </td>
           <td class="py-2 px-2 text-right">
             <span
-              v-if="!item.isFolder"
+              v-if="item.Size != null"
               class="text-sm text-muted"
             >{{
               formatFileSize(item.Size)
@@ -248,7 +248,7 @@ const sortedData = computed(() => {
     if (sortColumn.value === 'name') {
       cmp = a.name.localeCompare(b.name)
     } else if (sortColumn.value === 'Size') {
-      cmp = a.Size - b.Size
+      cmp = (a.Size ?? -1) - (b.Size ?? -1)
     } else {
       cmp
         = new Date(a.LastModified).getTime() - new Date(b.LastModified).getTime()

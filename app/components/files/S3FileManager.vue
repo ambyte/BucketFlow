@@ -5,6 +5,7 @@
       <BucketSidebar
         :show="showBucketSidebar"
         :buckets="availableBuckets"
+        :bucket-sizes="bucketSizes"
         :selected-bucket="selectedBucketName"
         :loading="isLoadingBuckets"
         :can-rename="canRenameBucket"
@@ -280,6 +281,7 @@ const canDeleteBucket = computed(
 
 const selectedBucketName = ref<string | undefined>(props.selectedBucketName)
 const availableBuckets = ref<string[]>([])
+const bucketSizes = ref<Record<string, number>>({})
 const isLoadingBuckets = ref(false)
 const hasUsedInitialPath = ref(false)
 const viewMode = ref<'grid' | 'list'>('list')
@@ -346,6 +348,7 @@ const loadBuckets = async (options?: {
   if (!identifier) {
     selectedBucketName.value = undefined
     availableBuckets.value = []
+    bucketSizes.value = {}
     hasUsedInitialPath.value = false
     return
   }
@@ -361,11 +364,13 @@ const loadBuckets = async (options?: {
 
   if (showLoading) isLoadingBuckets.value = true
   try {
-    const buckets: string[] = [...(await s3.fetchBuckets(identifier))]
+    const result = await s3.fetchBuckets(identifier)
+    const buckets: string[] = [...result.buckets]
     if (options?.ensureBucket && !buckets.includes(options.ensureBucket)) {
       buckets.push(options.ensureBucket)
     }
     availableBuckets.value = buckets
+    bucketSizes.value = result.sizes || {}
 
     if (!resetSelection) {
       if (
@@ -459,7 +464,6 @@ const tableRows = computed<TableRow[]>(() => {
   const folderRows = folders.value.map((f: FolderItem) => ({
     ...f,
     isFolder: true,
-    Size: 0,
     LastModified: new Date()
   }))
   return [...folderRows, ...files.value]
@@ -861,6 +865,9 @@ const confirmDeleteBucket = async () => {
 
   const remaining = availableBuckets.value.filter(name => name !== deletedName)
   availableBuckets.value = remaining
+  const nextSizes = { ...bucketSizes.value }
+  delete nextSizes[deletedName]
+  bucketSizes.value = nextSizes
 
   if (selectedBucketName.value === deletedName) {
     selectedBucketName.value = remaining[0]
@@ -898,6 +905,12 @@ const confirmRenameBucketWithName = async (newName: string) => {
         newName,
         ...availableBuckets.value.slice(idx + 1)
       ]
+      if (oldName in bucketSizes.value) {
+        const nextSizes = { ...bucketSizes.value }
+        nextSizes[newName] = nextSizes[oldName]!
+        delete nextSizes[oldName]
+        bucketSizes.value = nextSizes
+      }
     }
   }
 }

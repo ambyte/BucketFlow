@@ -40,7 +40,7 @@
             }}</span>
           </UTooltip>
           <div
-            v-if="!row.isFolder"
+            v-if="row.Size != null"
             class="text-xs text-muted"
           >
             {{ formatFileSize(row.Size) }}

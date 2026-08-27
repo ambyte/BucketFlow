@@ -427,10 +427,78 @@ async function listObjectsPageAll(
   return { contents, commonPrefixes }
 }
 
-export async function listObjects(
+/** Recursively sum object sizes under a prefix (skips directory marker keys). */
+export async function getObjectSizeStats(
   destination: S3Destination,
   bucketName: string,
   prefix: string = ''
+): Promise<{ totalSize: number, folderSizes: Record<string, number> }> {
+  const client = getS3Client(destination)
+  let totalSize = 0
+  const folderSizes: Record<string, number> = {}
+  let continuationToken: string | undefined
+
+  do {
+    const response = await send<ListObjectsV2CommandOutput>(
+      client,
+      new ListObjectsV2Command({
+        Bucket: bucketName,
+        Prefix: prefix || undefined,
+        ContinuationToken: continuationToken
+      })
+    )
+    for (const obj of response.Contents || []) {
+      const key = obj.Key || ''
+      if (!key || key.endsWith('/')) continue
+      const size = obj.Size || 0
+      totalSize += size
+      if (!key.startsWith(prefix)) continue
+      const relative = key.slice(prefix.length)
+      const slash = relative.indexOf('/')
+      if (slash > 0) {
+        const folderKey = prefix + relative.slice(0, slash + 1)
+        folderSizes[folderKey] = (folderSizes[folderKey] || 0) + size
+      }
+    }
+    if (!response.IsTruncated || !response.NextContinuationToken) break
+    continuationToken = response.NextContinuationToken
+  } while (continuationToken)
+
+  return { totalSize, folderSizes }
+}
+
+export async function getBucketSizes(
+  destination: S3Destination,
+  bucketNames: string[]
+): Promise<Record<string, number>> {
+  const sizes: Record<string, number> = {}
+  const concurrency = 4
+  let index = 0
+
+  async function worker() {
+    while (index < bucketNames.length) {
+      const current = index++
+      const name = bucketNames[current]
+      if (!name) continue
+      const { totalSize } = await getObjectSizeStats(destination, name, '')
+      sizes[name] = totalSize
+    }
+  }
+
+  await Promise.all(
+    Array.from(
+      { length: Math.min(concurrency, Math.max(bucketNames.length, 0)) },
+      () => worker()
+    )
+  )
+  return sizes
+}
+
+export async function listObjects(
+  destination: S3Destination,
+  bucketName: string,
+  prefix: string = '',
+  options: { includeSizes?: boolean } = {}
 ): Promise<ListObjectsResult> {
   const client = getS3Client(destination)
   const { contents, commonPrefixes } = await listObjectsPageAll(
@@ -464,33 +532,44 @@ export async function listObjects(
     return true
   })
 
-  const files: FileItem[] = await Promise.all(
-    fileObjects.map(async (obj) => {
-      const key = obj.Key || ''
-      const name = key.replace(prefix, '').replace(/\/$/, '') || ''
-      const file: FileItem = {
-        Key: key,
-        Size: obj.Size || 0,
-        LastModified: obj.LastModified || new Date(),
-        ETag: obj.ETag || '',
-        StorageClass: obj.StorageClass || 'STANDARD',
-        name
-      }
-      if (metadataColumns.length > 0) {
-        try {
-          const head = await getObjectMetadata(destination, bucketName, key)
-          file.Metadata = decodeMetadataFromS3(
-            head.Metadata as Record<string, string>
-          )
-        } catch {
-          file.Metadata = {}
+  const [files, sizeStats] = await Promise.all([
+    Promise.all(
+      fileObjects.map(async (obj) => {
+        const key = obj.Key || ''
+        const name = key.replace(prefix, '').replace(/\/$/, '') || ''
+        const file: FileItem = {
+          Key: key,
+          Size: obj.Size || 0,
+          LastModified: obj.LastModified || new Date(),
+          ETag: obj.ETag || '',
+          StorageClass: obj.StorageClass || 'STANDARD',
+          name
         }
-      }
-      return file
-    })
-  )
+        if (metadataColumns.length > 0) {
+          try {
+            const head = await getObjectMetadata(destination, bucketName, key)
+            file.Metadata = decodeMetadataFromS3(
+              head.Metadata as Record<string, string>
+            )
+          } catch {
+            file.Metadata = {}
+          }
+        }
+        return file
+      })
+    ),
+    options.includeSizes
+      ? getObjectSizeStats(destination, bucketName, prefix)
+      : Promise.resolve(null)
+  ])
 
-  const folders = [...folderMap.values()]
+  const folders = [...folderMap.values()].map((folder) => {
+    if (!sizeStats) return folder
+    return {
+      ...folder,
+      Size: sizeStats.folderSizes[folder.Prefix] ?? 0
+    }
+  })
 
   return {
     files,

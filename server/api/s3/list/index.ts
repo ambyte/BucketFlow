@@ -6,7 +6,7 @@ import {
 } from '../../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
-  requireAuth(event)
+  const auth = requireAuth(event)
 
   const query = getQuery(event)
   const id = query.id as string
@@ -22,6 +22,8 @@ export default defineEventHandler(async (event) => {
 
   const destination = await requireS3Destination(event, id)
   ensureBucketAllowed(destination, bucketName)
-  const result = await listObjects(destination, bucketName, prefix)
+  const result = await listObjects(destination, bucketName, prefix, {
+    includeSizes: auth.role === 'admin'
+  })
   return result
 })

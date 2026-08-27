@@ -60,6 +60,7 @@ export interface FileItem {
 export interface FolderItem {
   Prefix: string
   name: string
+  Size?: number
 }
 
 export interface ListObjectsResult {
@@ -82,7 +83,7 @@ export interface TableRow {
   isFolder?: boolean
   Key?: string
   Prefix?: string
-  Size: number
+  Size?: number
   LastModified: Date
   ETag?: string
   StorageClass?: string

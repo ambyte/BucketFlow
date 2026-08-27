@@ -53,9 +53,16 @@
               >
                 <span class="block truncate text-default">{{ bucket }}</span>
               </UTooltip>
+              <span
+                v-if="bucketSizes[bucket] != null"
+                class="ml-auto shrink-0 text-xs text-muted tabular-nums"
+              >
+                {{ formatFileSize(bucketSizes[bucket] ?? 0) }}
+              </span>
               <div
                 v-if="canRename || canDelete"
-                class="ml-auto shrink-0 flex items-center"
+                class="shrink-0 flex items-center"
+                :class="{ 'ml-auto': bucketSizes[bucket] == null }"
               >
                 <UTooltip
                   v-if="canRename"
@@ -101,19 +108,24 @@
 </template>
 
 <script setup lang="ts">
+import { formatFileSize } from '../../utils/fileUtils'
+
 const STORAGE_KEY = 'bucketflow-bucket-sidebar-width'
 const MIN_WIDTH = 180
 const MAX_WIDTH = 560
 const DEFAULT_WIDTH = 256
 
-defineProps<{
+withDefaults(defineProps<{
   show: boolean
   buckets: string[]
+  bucketSizes?: Record<string, number>
   selectedBucket?: string
   loading: boolean
   canRename: boolean
   canDelete: boolean
-}>()
+}>(), {
+  bucketSizes: () => ({})
+})
 
 defineEmits<{
   select: [bucket: string]
