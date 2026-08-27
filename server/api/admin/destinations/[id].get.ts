@@ -1,24 +1,5 @@
 import { getDestinationById } from '../../../utils/storage'
-import { requireAuth } from '../../../utils/helpers'
-import type { S3Destination } from '../../../../app/types'
-
-function destinationToResponse(destination: S3Destination) {
-  return {
-    id: destination.id,
-    name: destination.name,
-    region: destination.region,
-    endpoint: destination.endpoint,
-    accessKeyId: destination.accessKeyId,
-    secretAccessKey: destination.secretAccessKey,
-    bucketNames: destination.bucketNames,
-    forcePathStyle: destination.forcePathStyle,
-    allowPublicAccess: destination.allowPublicAccess,
-    allowedUserIds: destination.allowedUserIds,
-    metadataColumns: destination.metadataColumns ?? [],
-    createdAt: destination.createdAt,
-    updatedAt: destination.updatedAt
-  }
-}
+import { requireAuth, toClientDestination } from '../../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
   requireAuth(event, 'admin')
@@ -40,6 +21,6 @@ export default defineEventHandler(async (event) => {
   }
 
   return {
-    destination: destinationToResponse(destination)
+    destination: toClientDestination(destination)
   }
 })

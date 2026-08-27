@@ -20,8 +20,6 @@ export function useFiles(ctx: AppContext) {
     uploadProgress
   } = ctx
 
-  const authToken = useState<string | null>('auth-token', () => null)
-
   const getUploadIdentifier = () =>
     isPublic ? currentHash.value : currentDestinationId.value
 
@@ -368,14 +366,12 @@ export function useFiles(ctx: AppContext) {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     }
-    if (!isPublic && authToken.value) {
-      headers.Authorization = `Bearer ${authToken.value}`
-    }
 
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers,
+        credentials: 'include',
         body: JSON.stringify({
           keys,
           prefixes,

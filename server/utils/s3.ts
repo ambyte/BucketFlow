@@ -189,7 +189,7 @@ function addDeleteObjectsMd5Middleware(client: S3Client): void {
   // Must run in `build` (after serialize, before SigV4). Adding the header
   // in `finalizeRequest` leaves Content-MD5 unsigned and MinIO returns
   // AccessDenied: headers present which were not signed.
-  client.middlewareStack.add(md5Middleware, {
+  client.middlewareStack.add(md5Middleware as never, {
     step: 'build',
     name: 'addMD5ChecksumForDeleteObjects',
     priority: 'low',
@@ -199,7 +199,7 @@ function addDeleteObjectsMd5Middleware(client: S3Client): void {
 
 function wrapS3Error(error: unknown): Error {
   if (error && typeof error === 'object' && 'statusCode' in error && 'statusMessage' in error) {
-    return error as Error
+    return error as unknown as Error
   }
   const wrapped = new Error(getS3ErrorMessage(error))
   const src = error as S3LikeError
@@ -740,6 +740,20 @@ export async function getObjectMetadata(
       Key: key
     })
   )
+}
+
+export async function objectExists(
+  destination: S3Destination,
+  bucketName: string,
+  key: string
+): Promise<boolean> {
+  try {
+    await getObjectMetadata(destination, bucketName, key)
+    return true
+  } catch (error) {
+    if (getS3HttpStatus(error, 500) === 404) return false
+    throw error
+  }
 }
 
 /** List all object keys under a prefix recursively (no delimiter) */

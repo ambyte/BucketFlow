@@ -125,11 +125,11 @@
           <UFormField
             label="Secret Access Key"
             name="secretAccessKey"
-            required
+            :required="!isEditing"
           >
             <UInput
               v-model="destinationForm.secretAccessKey"
-              placeholder="Enter secret access key"
+              :placeholder="isEditing ? 'Leave blank to keep current key' : 'Enter secret access key'"
               :type="showSecretAccessKey ? 'text' : 'password'"
               :ui="{ trailing: 'pe-1' }"
               class="w-full"
@@ -152,6 +152,12 @@
                 />
               </template>
             </UInput>
+            <template
+              v-if="isEditing"
+              #help
+            >
+              <span class="text-xs text-muted">The stored key is never shown. Leave blank to keep it.</span>
+            </template>
           </UFormField>
 
           <UFormField
@@ -370,7 +376,7 @@ const metadataColumnsString = computed({
 const isValidForm = computed(() => {
   if (!destinationForm.name) return false
   if (!destinationForm.endpoint || !destinationForm.accessKeyId) return false
-  if (!destinationForm.secretAccessKey) return false
+  if (!isEditing.value && !destinationForm.secretAccessKey) return false
   if (!isValidUrl(destinationForm.endpoint)) return false
   if (destinationForm.bucketNames.length > 0) {
     return destinationForm.bucketNames.every(name =>
@@ -416,7 +422,7 @@ const openEditModal = async (
     destinationForm.region = fullDestination.region || ''
     destinationForm.endpoint = fullDestination.endpoint
     destinationForm.accessKeyId = fullDestination.accessKeyId
-    destinationForm.secretAccessKey = fullDestination.secretAccessKey
+    destinationForm.secretAccessKey = ''
     destinationForm.bucketNames = fullDestination.bucketNames || []
     destinationForm.forcePathStyle = fullDestination.forcePathStyle ?? true
     destinationForm.allowedUserIds = fullDestination.allowedUserIds || []
@@ -443,12 +449,17 @@ const testConnection = async () => {
   isTesting.value = true
 
   try {
-    const config = {
+    const config: Record<string, unknown> = {
       region: destinationForm.region,
       endpoint: destinationForm.endpoint,
       accessKeyId: destinationForm.accessKeyId,
-      secretAccessKey: destinationForm.secretAccessKey,
       forcePathStyle: destinationForm.forcePathStyle
+    }
+    if (destinationForm.secretAccessKey) {
+      config.secretAccessKey = destinationForm.secretAccessKey
+    }
+    if (isEditing.value && editingId.value) {
+      config.id = editingId.value
     }
 
     const result = await apiCall('/api/destinations/test', {
@@ -474,9 +485,13 @@ const saveDestination = async () => {
 
   try {
     if (isEditing.value && editingId.value) {
+      const payload = { ...destinationForm } as Record<string, unknown>
+      if (!destinationForm.secretAccessKey) {
+        delete payload.secretAccessKey
+      }
       await apiCall(`/api/admin/destinations/${editingId.value}`, {
         method: 'PUT',
-        body: JSON.stringify(destinationForm)
+        body: JSON.stringify(payload)
       })
 
       handleSuccess('Destination updated', 'Success')

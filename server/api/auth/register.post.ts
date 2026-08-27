@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { getUsers, createUser } from '../../utils/storage'
 import { hashPassword } from '../../utils/auth'
 import { validateBody } from '../../utils/helpers'
+import { rateLimit } from '../../utils/rate-limit'
 
 const registerSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -9,6 +10,8 @@ const registerSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
+  rateLimit(event, { name: 'register', max: 5, windowMs: 15 * 60 * 1000 })
+
   const users = await getUsers()
   if (users.length > 0) {
     throw createError({

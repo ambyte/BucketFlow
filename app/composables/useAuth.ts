@@ -1,9 +1,8 @@
-import type { User, UserRole, JwtPayload } from '../types'
+import type { User } from '../types'
 
 export const useAuth = () => {
-  const token = useState<string | null>('auth-token', () => null)
   const user = useState<User | null>('auth-user', () => null)
-  const isAuthenticated = computed(() => !!token.value && !!user.value)
+  const isAuthenticated = computed(() => !!user.value)
   const isAdmin = computed(() => user.value?.role === 'admin')
   const isEditor = computed(() =>
     ['admin', 'editor'].includes(user.value?.role || '')
@@ -21,13 +20,10 @@ export const useAuth = () => {
       ...options.headers
     }
 
-    if (token.value) {
-      headers.Authorization = `Bearer ${token.value}`
-    }
-
     const response = await fetch(url, {
       ...options,
-      headers
+      headers,
+      credentials: 'include'
     })
 
     if (!response.ok) {
@@ -37,10 +33,21 @@ export const useAuth = () => {
       )
       error.data = errorData
       error.statusCode = response.status
+      if (
+        response.status === 401
+        && !endpoint.startsWith('/api/auth/')
+      ) {
+        user.value = null
+        navigateTo('/login')
+      }
       throw error
     }
 
-    return response.json()
+    const contentType = response.headers.get('content-type') || ''
+    if (contentType.includes('application/json')) {
+      return response.json()
+    }
+    return null
   }
 
   const login = async (username: string, password: string) => {
@@ -50,26 +57,27 @@ export const useAuth = () => {
         body: JSON.stringify({ username, password })
       })
 
-      token.value = response.token
       user.value = response.user
-
-      if (import.meta.client) {
-        localStorage.setItem('s3fm-token', response.token)
-      }
-
       return true
     } catch (error: any) {
+      const isRateLimited = error.statusCode === 429
       useToast().add({
-        title: 'Login failed',
-        description: error.message || 'Invalid credentials',
+        title: isRateLimited ? 'Too many attempts' : 'Login failed',
+        description: error.message || (isRateLimited
+          ? 'Please try again later.'
+          : 'Invalid credentials'),
         color: 'error'
       })
       return false
     }
   }
 
-  const logout = () => {
-    token.value = null
+  const logout = async () => {
+    try {
+      await apiCall('/api/auth/logout', { method: 'POST' })
+    } catch {
+      // Cookie is cleared server-side even if the request fails later
+    }
     user.value = null
     if (import.meta.client) {
       localStorage.removeItem('s3fm-token')
@@ -78,22 +86,24 @@ export const useAuth = () => {
   }
 
   const initAuth = async () => {
-    if (import.meta.client) {
-      const savedToken = localStorage.getItem('s3fm-token')
-      if (savedToken) {
-        token.value = savedToken
-        try {
-          const response = await apiCall('/api/auth/me')
-          user.value = response.user
-        } catch {
-          logout()
-        }
+    try {
+      if (import.meta.server) {
+        const requestFetch = useRequestFetch()
+        const response = await requestFetch<{ user: User }>('/api/auth/me')
+        user.value = response.user
+      } else {
+        const response = await apiCall('/api/auth/me')
+        user.value = response.user
+      }
+    } catch {
+      user.value = null
+      if (import.meta.client) {
+        localStorage.removeItem('s3fm-token')
       }
     }
   }
 
   return {
-    token: readonly(token),
     user: readonly(user),
     isAuthenticated,
     isAdmin,

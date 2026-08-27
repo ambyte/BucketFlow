@@ -164,7 +164,7 @@ const handleLogin = async (event: FormSubmitEvent<{ username: string, password: 
       await navigateTo('/')
     } else {
       errorMessage.value = 'Login failed'
-      errorDescription.value = 'Invalid username or password. Please try again.'
+      errorDescription.value = 'Check your credentials and try again.'
     }
   } catch (error: any) {
     errorMessage.value = 'Login error'

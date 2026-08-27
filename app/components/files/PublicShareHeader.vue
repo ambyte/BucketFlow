@@ -1,7 +1,6 @@
 <template>
   <UHeader
     :toggle="false"
-    :to="false"
     class="border-b border-default bg-default shrink-0"
   >
     <template #title>

@@ -80,6 +80,20 @@ export const folderKeySchema = z
     )
   }, 'Invalid folder path')
 
+/** S3 object key (file), e.g. `photos/2024/file.pdf`. */
+export const objectKeySchema = z
+  .string()
+  .min(1, 'Object key is required')
+  .max(1024, 'Object key is too long')
+  .transform(key => key.replace(/^\/+/, '').replace(/\/+$/, ''))
+  .refine((key) => {
+    const segments = key.split('/')
+    return (
+      segments.length > 0
+      && segments.every(segment => folderNameSchema.safeParse(segment).success)
+    )
+  }, 'Invalid object key')
+
 export function requireAuth(event: any, requiredRole?: string) {
   const auth = event.context.auth
 
@@ -167,6 +181,24 @@ export function ensureBucketAllowed(
       statusCode: 403,
       statusMessage: 'Access to this bucket is not allowed'
     })
+  }
+}
+
+export function toClientDestination(destination: S3Destination) {
+  return {
+    id: destination.id,
+    name: destination.name,
+    region: destination.region,
+    endpoint: destination.endpoint,
+    accessKeyId: destination.accessKeyId,
+    hasSecretAccessKey: Boolean(destination.secretAccessKey),
+    bucketNames: destination.bucketNames,
+    forcePathStyle: destination.forcePathStyle,
+    allowPublicAccess: destination.allowPublicAccess,
+    allowedUserIds: destination.allowedUserIds,
+    metadataColumns: destination.metadataColumns ?? [],
+    createdAt: destination.createdAt,
+    updatedAt: destination.updatedAt
   }
 }
 

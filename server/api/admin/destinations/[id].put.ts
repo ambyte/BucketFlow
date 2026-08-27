@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { updateDestination } from '../../../utils/storage'
-import { requireAuth, validateBody } from '../../../utils/helpers'
-import type { S3Destination } from '../../../../app/types'
+import { requireAuth, validateBody, toClientDestination } from '../../../utils/helpers'
 
 const updateDestinationSchema = z.object({
   name: z.string().min(1).optional(),
@@ -16,24 +15,6 @@ const updateDestinationSchema = z.object({
   metadataColumns: z.array(z.string().min(1)).optional()
 })
 
-function destinationToResponse(destination: S3Destination) {
-  return {
-    id: destination.id,
-    name: destination.name,
-    region: destination.region,
-    endpoint: destination.endpoint,
-    accessKeyId: destination.accessKeyId,
-    secretAccessKey: destination.secretAccessKey,
-    bucketNames: destination.bucketNames,
-    forcePathStyle: destination.forcePathStyle,
-    allowPublicAccess: destination.allowPublicAccess,
-    allowedUserIds: destination.allowedUserIds,
-    metadataColumns: destination.metadataColumns ?? [],
-    createdAt: destination.createdAt,
-    updatedAt: destination.updatedAt
-  }
-}
-
 export default defineEventHandler(async (event) => {
   requireAuth(event, 'admin')
 
@@ -47,6 +28,9 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
   const data = validateBody(updateDestinationSchema, body)
+  if (!data.secretAccessKey) {
+    delete data.secretAccessKey
+  }
 
   try {
     const destination = await updateDestination(id, data)
@@ -58,7 +42,7 @@ export default defineEventHandler(async (event) => {
     }
 
     return {
-      destination: destinationToResponse(destination)
+      destination: toClientDestination(destination)
     }
   } catch (error: any) {
     if (error.statusCode) {

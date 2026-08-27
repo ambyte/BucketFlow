@@ -1,15 +1,14 @@
-import { getUsers } from '../../utils/storage'
+import { getUserById } from '../../utils/storage'
 import { requireAuth } from '../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
   const auth = requireAuth(event)
-  const users = await getUsers()
-  const user = users.find(u => u.id === auth.userId)
+  const user = await getUserById(auth.userId)
 
   if (!user) {
     throw createError({
-      statusCode: 404,
-      statusMessage: 'User not found'
+      statusCode: 401,
+      statusMessage: 'Unauthorized'
     })
   }
 

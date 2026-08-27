@@ -1,5 +1,5 @@
-import { getSecrets, saveSecrets } from '../utils/storage'
-import { setJwtSecret } from '../utils/runtime-secrets'
+import { getSecrets, saveSecrets, getDestinations, saveDestinations } from '../utils/storage'
+import { setJwtSecret, setEncryptionKey } from '../utils/runtime-secrets'
 
 function generateSecret(bytes: number = 32): string {
   return crypto
@@ -9,14 +9,28 @@ function generateSecret(bytes: number = 32): string {
 
 export default defineNitroPlugin(async () => {
   try {
-    const secrets = await getSecrets()
+    const secrets = (await getSecrets()) || { jwtSecret: '', encryptionKey: '' }
+    let dirty = false
 
-    if (!secrets || !secrets.jwtSecret) {
-      const jwtSecret = generateSecret(32)
-      await saveSecrets({ jwtSecret })
-      setJwtSecret(jwtSecret)
-    } else {
-      setJwtSecret(secrets.jwtSecret)
+    if (!secrets.jwtSecret) {
+      secrets.jwtSecret = generateSecret(32)
+      dirty = true
+    }
+    if (!secrets.encryptionKey) {
+      secrets.encryptionKey = generateSecret(32)
+      dirty = true
+    }
+
+    if (dirty) {
+      await saveSecrets(secrets)
+    }
+
+    setJwtSecret(secrets.jwtSecret)
+    setEncryptionKey(secrets.encryptionKey!)
+
+    const destinations = await getDestinations()
+    if (destinations.length > 0) {
+      await saveDestinations(destinations)
     }
   } catch (error) {
     console.error('[Init] Failed to initialize secrets:', error)

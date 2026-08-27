@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import type { User, S3Destination, PublicLink } from '../../app/types'
+import { decryptSecret, encryptSecret } from './crypto-secrets'
 
 const USERS_KEY = 'app:users'
 const DESTINATIONS_KEY = 'app:destinations'
@@ -8,6 +9,7 @@ const SECRETS_KEY = 'app:secrets'
 
 export interface AppSecrets {
   jwtSecret: string
+  encryptionKey?: string
 }
 
 export async function getSecrets(): Promise<AppSecrets | null> {
@@ -83,17 +85,35 @@ export async function deleteUser(id: string): Promise<boolean> {
   return true
 }
 
+function decryptDestination(dest: S3Destination): S3Destination {
+  return {
+    ...dest,
+    secretAccessKey: dest.secretAccessKey
+      ? decryptSecret(dest.secretAccessKey)
+      : dest.secretAccessKey
+  }
+}
+
+function encryptDestination(dest: S3Destination): S3Destination {
+  return {
+    ...dest,
+    secretAccessKey: dest.secretAccessKey
+      ? encryptSecret(dest.secretAccessKey)
+      : dest.secretAccessKey
+  }
+}
+
 export async function getDestinations(): Promise<S3Destination[]> {
   const storage = useStorage('data')
   const destinations = await storage.getItem<S3Destination[]>(DESTINATIONS_KEY)
-  return destinations || []
+  return (destinations || []).map(decryptDestination)
 }
 
 export async function saveDestinations(
   destinations: S3Destination[]
 ): Promise<void> {
   const storage = useStorage('data')
-  await storage.setItem(DESTINATIONS_KEY, destinations)
+  await storage.setItem(DESTINATIONS_KEY, destinations.map(encryptDestination))
 }
 
 export async function getDestinationById(

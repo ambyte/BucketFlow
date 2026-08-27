@@ -3,6 +3,8 @@ import { getUserByUsername } from '../../utils/storage'
 import { verifyPassword, generateToken } from '../../utils/auth'
 import { validateBody } from '../../utils/helpers'
 import { getJwtSecret } from '../../utils/runtime-secrets'
+import { setAuthCookie } from '../../utils/auth-cookie'
+import { rateLimit } from '../../utils/rate-limit'
 
 const loginSchema = z.object({
   username: z.string().min(1),
@@ -10,6 +12,8 @@ const loginSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
+  rateLimit(event, { name: 'login', max: 10, windowMs: 15 * 60 * 1000 })
+
   const body = await readBody(event)
   const data = validateBody(loginSchema, body)
 
@@ -23,9 +27,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const token = generateToken(user, getJwtSecret())
+  setAuthCookie(event, token)
 
   return {
-    token,
     user: {
       id: user.id,
       username: user.username,

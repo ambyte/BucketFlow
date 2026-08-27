@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { getDestinations, createDestination } from '../../../utils/storage'
-import { requireAuth, validateBody } from '../../../utils/helpers'
-import type { S3Destination } from '../../../../app/types'
+import { requireAuth, validateBody, toClientDestination } from '../../../utils/helpers'
 
 const createDestinationSchema = z.object({
   name: z.string().min(1),
@@ -22,7 +21,7 @@ export default defineEventHandler(async (event) => {
   if (method === 'GET') {
     const destinations = await getDestinations()
     return {
-      destinations: destinations as S3Destination[]
+      destinations: destinations.map(toClientDestination)
     }
   }
   if (method === 'POST') {
@@ -30,9 +29,13 @@ export default defineEventHandler(async (event) => {
     const data = validateBody(createDestinationSchema, body)
 
     try {
-      const destination = await createDestination(data as Omit<S3Destination, 'id' | 'createdAt' | 'updatedAt'>)
+      const destination = await createDestination({
+        ...data,
+        bucketNames: data.bucketNames ?? [],
+        allowedUserIds: data.allowedUserIds ?? []
+      })
 
-      return { destination: destination as S3Destination }
+      return { destination: toClientDestination(destination) }
     } catch (error: any) {
       throw createError({
         statusCode: 400,
