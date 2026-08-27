@@ -19,6 +19,7 @@ Public links are available only for destinations with **Allowed anonymous access
 
 - target bucket/path;
 - expiration date (or permanent link);
+- layout: **Embed** (no header, for iframe) or **Shared page** (branded header);
 - public page theme (`primary`, `neutral`, `theme`);
 - permissions:
   - **Allow file upload** — allow file uploads;
@@ -29,15 +30,17 @@ Public links are available only for destinations with **Allowed anonymous access
 ## Public URL format
 
 ```text
-https://your-domain.com/public?path=<hash>&primary=emerald&neutral=zinc&theme=light
+https://your-domain.com/public?path=<hash>&primary=emerald&neutral=zinc&theme=system
+https://your-domain.com/public?path=<hash>&view=page&primary=emerald&neutral=zinc&theme=system
 ```
 
 | Parameter | Description |
 |----------|-------------|
 | `path` | Public link hash (required) |
+| `view` | `page` for a branded share page with header; omit or `embed` for iframe |
 | `primary` | Primary theme color |
 | `neutral` | Neutral palette |
-| `theme` | `light` or `dark` |
+| `theme` | `system` (default), `light`, or `dark` |
 
 ## Managing existing links
 

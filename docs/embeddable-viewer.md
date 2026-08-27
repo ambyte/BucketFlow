@@ -28,7 +28,8 @@ You can pass theme settings through query parameters:
 - `path` — public link hash
 - `primary` — primary color
 - `neutral` — neutral palette
-- `theme` — `light` or `dark`
+- `theme` — `system` (default), `light`, or `dark`
+- omit `view=page` in embed URLs so the compact layout without a header is used
 
 ## Best practices
 

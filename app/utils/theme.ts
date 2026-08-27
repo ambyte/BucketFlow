@@ -31,9 +31,12 @@ export const neutralColorItems = neutralColors.map(c => ({
 }))
 
 export const themeModeItems = [
+  { label: 'System', value: 'system' },
   { label: 'Light', value: 'light' },
   { label: 'Dark', value: 'dark' }
 ]
+
+export type ThemeMode = 'system' | 'light' | 'dark'
 
 export function isValidColor(color: string): boolean {
   return themeColors.includes(color)
@@ -41,4 +44,8 @@ export function isValidColor(color: string): boolean {
 
 export function isValidNeutral(color: string): boolean {
   return neutralColors.includes(color)
+}
+
+export function isValidThemeMode(mode: string): mode is ThemeMode {
+  return mode === 'system' || mode === 'light' || mode === 'dark'
 }

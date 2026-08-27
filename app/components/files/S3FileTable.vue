@@ -11,7 +11,7 @@
         >
         <col style="width: 8rem">
         <col style="width: 8rem">
-        <col style="width: 3.5rem">
+        <col :style="iconActions ? 'width: 7.5rem' : 'width: 3.5rem'">
       </colgroup>
       <thead>
         <tr class="border-b border-accented">
@@ -63,7 +63,10 @@
               @click="sortBy('LastModified')"
             />
           </th>
-          <th class="text-right w-14 py-3 px-2" />
+          <th
+            class="text-right py-3 px-2"
+            :class="iconActions ? 'w-30' : 'w-14'"
+          />
         </tr>
       </thead>
       <tbody>
@@ -130,8 +133,27 @@
               formatDateShort(item.LastModified)
             }}</span>
           </td>
-          <td class="py-2 px-2 text-right w-14">
+          <td
+            class="py-2 px-2 text-right"
+            :class="iconActions ? 'w-30' : 'w-14'"
+          >
+            <FileRowActions
+              v-if="iconActions"
+              class="justify-end"
+              :item="item"
+              :is-editor="isEditor"
+              :show-metadata="showMetadata"
+              @download="emit('download', $event)"
+              @preview="emit('preview', $event)"
+              @delete="emit('delete', $event)"
+              @delete-folder="emit('deleteFolder', $event)"
+              @download-folder="emit('downloadFolder', $event)"
+              @rename-folder="emit('renameFolder', $event)"
+              @rename-file="emit('renameFile', $event)"
+              @metadata="emit('metadata', $event)"
+            />
             <div
+              v-else
               class="flex justify-end"
               @click.stop
             >
@@ -173,6 +195,7 @@ interface Props {
   data: TableRow[]
   isEditor?: boolean
   showMetadata?: boolean
+  iconActions?: boolean
   metadataColumns?: string[]
   selectedIds: string[]
   selectAllCheckboxValue: boolean | 'indeterminate'
@@ -180,6 +203,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   showMetadata: true,
+  iconActions: false,
   metadataColumns: () => []
 })
 

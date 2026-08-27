@@ -166,6 +166,7 @@
 import { computed, ref, watch } from 'vue'
 import type { PublicLink } from '../../../types'
 import { formatDateTime } from '../../../utils/formatters'
+import { buildPublicPageUrl } from '../../../utils/publicLinkUrl'
 
 const props = defineProps<{
   open: boolean
@@ -196,22 +197,20 @@ const showEditModal = ref(false)
 const linkToEdit = ref<PublicLink | null>(null)
 
 const appConfig = useAppConfig()
-const colorMode = useColorMode()
 
 const isExpired = (link: PublicLink): boolean =>
   !!link.expiresAt && new Date(link.expiresAt) < new Date()
 
-const buildLinkUrl = (link: PublicLink) => {
+const buildLinkUrl = (link: PublicLink, view: 'embed' | 'page' = 'embed') => {
   if (typeof window === 'undefined' || !link.hash) return ''
-  const url = new URL(`${window.location.origin}/public`)
-  url.searchParams.set('path', link.hash)
-  const primary = appConfig.ui?.colors?.primary || 'emerald'
-  const neutral = appConfig.ui?.colors?.neutral || 'zinc'
-  const theme = colorMode.preference || 'light'
-  url.searchParams.set('primary', primary)
-  url.searchParams.set('neutral', neutral)
-  url.searchParams.set('theme', theme)
-  return url.toString()
+  return buildPublicPageUrl({
+    origin: window.location.origin,
+    hash: link.hash,
+    primary: appConfig.ui?.colors?.primary || 'emerald',
+    neutral: appConfig.ui?.colors?.neutral || 'zinc',
+    theme: 'system',
+    view
+  })
 }
 
 const fetchLinks = async () => {
@@ -251,7 +250,7 @@ const copyLinkUrl = async (link: PublicLink) => {
 }
 
 const openLink = (link: PublicLink) => {
-  const url = buildLinkUrl(link)
+  const url = buildLinkUrl(link, 'page')
   if (url) window.open(url, '_blank')
 }
 

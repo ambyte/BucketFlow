@@ -23,6 +23,13 @@
           </div>
         </UFormField>
 
+        <URadioGroup
+          v-model="viewMode"
+          legend="Layout"
+          variant="table"
+          :items="viewModeItems"
+        />
+
         <UFormField label="Public URL">
           <UInput
             :model-value="publicUrl"
@@ -62,15 +69,20 @@
             class="w-full font-mono text-sm"
           />
           <template #help>
-            <UButton
-              variant="ghost"
-              size="xs"
-              icon="i-heroicons-clipboard"
-              class="mt-2"
-              @click="copyToClipboard(iframeCode)"
-            >
-              Copy Code
-            </UButton>
+            <div class="flex flex-col gap-1 mt-2">
+              <span class="text-muted text-sm">
+                Embed always uses the compact layout without a header.
+              </span>
+              <UButton
+                variant="ghost"
+                size="xs"
+                icon="i-heroicons-clipboard"
+                class="self-start"
+                @click="copyToClipboard(iframeCode)"
+              >
+                Copy Code
+              </UButton>
+            </div>
           </template>
         </UFormField>
 
@@ -157,8 +169,14 @@ import { computed, ref, watch } from 'vue'
 import {
   themeColorItems,
   neutralColorItems,
-  themeModeItems
+  themeModeItems,
+  type ThemeMode
 } from '../../../utils/theme'
+import {
+  type PublicViewMode,
+  buildPublicIframeCode,
+  buildPublicPageUrl
+} from '../../../utils/publicLinkUrl'
 
 const props = defineProps<{
   open: boolean
@@ -191,7 +209,20 @@ const linkLocation = computed(() => {
 const isSaving = ref(false)
 const isGenerating = ref(false)
 
-const linkTheme = ref({ primary: 'emerald', neutral: 'zinc', mode: 'light' })
+const linkTheme = ref({ primary: 'emerald', neutral: 'zinc', mode: 'system' as ThemeMode })
+const viewMode = ref<PublicViewMode>('embed')
+const viewModeItems = [
+  {
+    label: 'Embed',
+    description: 'Compact view without a header. Best for iframe on another site.',
+    value: 'embed'
+  },
+  {
+    label: 'Shared page',
+    description: 'Branded page with a header, like typical file-sharing apps.',
+    value: 'page'
+  }
+]
 const linkPermissions = ref({
   allowFileUpload: false,
   allowFolderCreation: false
@@ -240,7 +271,7 @@ const linkPermissionsSelected = computed({
 const savedTheme = ref<{
   primary: string
   neutral: string
-  mode: 'light' | 'dark'
+  mode: ThemeMode
 } | null>(null)
 const linkHash = ref('')
 const isSaved = ref(false)
@@ -252,22 +283,31 @@ const placeholderText = computed(() => {
   return 'Failed to generate draft URL. Re-open dialog and try again.'
 })
 
+const publicLinkParams = computed(() => {
+  if (typeof window === 'undefined' || !linkHash.value) return null
+  return {
+    origin: window.location.origin,
+    hash: linkHash.value,
+    primary: linkTheme.value.primary,
+    neutral: linkTheme.value.neutral,
+    theme: linkTheme.value.mode
+  }
+})
+
 const publicUrl = computed(() => {
-  if (typeof window === 'undefined') return ''
-  if (!linkHash.value) return ''
-  const baseUrl = window.location.origin
-  const url = new URL(`${baseUrl}/public`)
-  url.searchParams.set('path', linkHash.value)
-  if (linkTheme.value.primary)
-    url.searchParams.set('primary', linkTheme.value.primary)
-  if (linkTheme.value.neutral)
-    url.searchParams.set('neutral', linkTheme.value.neutral)
-  if (linkTheme.value.mode) url.searchParams.set('theme', linkTheme.value.mode)
-  return url.toString()
+  if (!publicLinkParams.value) return ''
+  return buildPublicPageUrl({
+    ...publicLinkParams.value,
+    view: viewMode.value
+  })
 })
 
 const iframeCode = computed(() => {
-  return `<iframe src="${publicUrl.value}" width="100%" height="600" frameborder="0"></iframe>`
+  if (!publicLinkParams.value) return ''
+  return buildPublicIframeCode(buildPublicPageUrl({
+    ...publicLinkParams.value,
+    view: 'embed'
+  }))
 })
 
 const { createPublicLink, updatePublicLink } = useAppContext()
@@ -419,7 +459,7 @@ function applyLinkThemeToApp() {
   appConfig.ui.colors = appConfig.ui.colors || {}
   appConfig.ui.colors.primary = linkTheme.value.primary
   appConfig.ui.colors.neutral = linkTheme.value.neutral
-  colorMode.preference = linkTheme.value.mode as 'light' | 'dark'
+  colorMode.preference = linkTheme.value.mode
 }
 
 function restoreSavedTheme() {
@@ -435,6 +475,7 @@ function restoreSavedTheme() {
 watch(isOpen, (open) => {
   if (open) {
     isSaved.value = false
+    viewMode.value = 'embed'
     if (props.editLink) {
       linkHash.value = props.editLink.hash
       linkPermissions.value = {
@@ -455,12 +496,14 @@ watch(isOpen, (open) => {
     savedTheme.value = {
       primary: appConfig.ui?.colors?.primary ?? 'emerald',
       neutral: appConfig.ui?.colors?.neutral ?? 'zinc',
-      mode: colorMode.value === 'dark' ? 'dark' : 'light'
+      mode: colorMode.preference === 'dark' || colorMode.preference === 'light' || colorMode.preference === 'system'
+        ? colorMode.preference
+        : 'system'
     }
     linkTheme.value = {
-      primary: savedTheme.value?.primary ?? 'emerald',
-      neutral: savedTheme.value?.neutral ?? 'zinc',
-      mode: savedTheme.value?.mode ?? 'light'
+      primary: savedTheme.value.primary,
+      neutral: savedTheme.value.neutral,
+      mode: 'system'
     }
     applyLinkThemeToApp()
     if (!props.editLink) void generateDraftLink()

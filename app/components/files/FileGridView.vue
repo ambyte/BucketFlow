@@ -3,134 +3,66 @@
     :class="gridContainerClasses"
     :style="gridContainerStyle"
   >
-    <UTooltip
+    <div
       v-for="row in data"
       :key="row.name"
-      :text="row.name"
-      :content="{ side: 'top', sideOffset: 8 }"
-      :ui="{ content: 'max-w-xs break-all' }"
       :class="gridClasses"
     >
       <div
         class="flex flex-col items-center p-2 py-4 hover:bg-elevated rounded-lg transition-colors group relative w-full"
       >
-      <div class="absolute top-1 left-1 z-10" @click.stop>
-        <UCheckbox
-          :model-value="selectedIds.includes(rowId(row))"
-          @update:model-value="$emit('toggleSelect', row)"
-        />
-      </div>
-      <button
-        class="flex flex-col items-center w-full"
-        @click="$emit('select', row)"
-        @dblclick="$emit('doubleClick', row)"
-      >
-        <UIcon
-          :name="row.isFolder ? 'i-heroicons-folder' : getFileIcon(row as FileItem)
-          "
-          class="w-12 h-12"
-          :class="row.isFolder ? 'text-primary' : 'text-muted'"
-        />
-        <span class="text-sm text-center truncate w-full text-highlighted">{{
-          row.name
-        }}</span>
         <div
-          v-if="!row.isFolder"
-          class="text-xs text-muted"
+          class="absolute top-1 left-1 z-10"
+          @click.stop
         >
-          {{ formatFileSize(row.Size) }}
+          <UCheckbox
+            :model-value="selectedIds.includes(rowId(row))"
+            @update:model-value="$emit('toggleSelect', row)"
+          />
         </div>
-      </button>
-      <div class="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <template v-if="row.isFolder">
+        <button
+          class="flex flex-col items-center w-full"
+          @click="$emit('select', row)"
+          @dblclick="$emit('doubleClick', row)"
+        >
+          <UIcon
+            :name="row.isFolder ? 'i-heroicons-folder' : getFileIcon(row as FileItem)"
+            class="w-12 h-12"
+            :class="row.isFolder ? 'text-primary' : 'text-muted'"
+          />
           <UTooltip
-            v-if="isEditor"
-            text="Rename"
+            :text="row.name"
+            :content="{ side: 'top', sideOffset: 8 }"
+            :ui="{ content: 'max-w-xs break-all' }"
           >
-            <UButton
-              variant="ghost"
-              color="neutral"
-              icon="i-heroicons-pencil-square"
-              size="md"
-              class="cursor-pointer"
-              @click.stop="
-                $emit('renameFolder', {
-                  name: row.name,
-                  Prefix: (row as any).Prefix
-                })
-              "
-            />
+            <span class="text-sm text-center truncate w-full text-highlighted">{{
+              row.name
+            }}</span>
           </UTooltip>
-          <UTooltip
-            v-if="isEditor"
-            text="Delete"
+          <div
+            v-if="!row.isFolder"
+            class="text-xs text-muted"
           >
-            <UButton
-              variant="ghost"
-              color="error"
-              icon="i-heroicons-trash"
-              size="md"
-              class="cursor-pointer"
-              @click.stop="
-                $emit('deleteFolder', {
-                  name: row.name,
-                  Prefix: (row as any).Prefix
-                })
-              "
-            />
-          </UTooltip>
-        </template>
-        <template v-else>
-          <UTooltip text="Metadata">
-            <UButton
-              variant="ghost"
-              color="neutral"
-              icon="i-heroicons-tag"
-              size="md"
-              class="cursor-pointer"
-              @click.stop="$emit('metadata', row as FileItem)"
-            />
-          </UTooltip>
-          <UTooltip
-            v-if="isEditor"
-            text="Rename"
-          >
-            <UButton
-              variant="ghost"
-              color="neutral"
-              icon="i-heroicons-pencil-square"
-              size="md"
-              class="cursor-pointer"
-              @click.stop="$emit('renameFile', row as FileItem)"
-            />
-          </UTooltip>
-          <UTooltip text="Download">
-            <UButton
-              variant="ghost"
-              color="neutral"
-              icon="i-heroicons-arrow-down-tray"
-              size="md"
-              class="cursor-pointer"
-              @click.stop="$emit('download', row as FileItem)"
-            />
-          </UTooltip>
-          <UTooltip
-            v-if="isEditor"
-            text="Delete"
-          >
-            <UButton
-              variant="ghost"
-              color="error"
-              icon="i-heroicons-trash"
-              size="md"
-              class="cursor-pointer"
-              @click.stop="$emit('delete', row as FileItem)"
-            />
-          </UTooltip>
-        </template>
+            {{ formatFileSize(row.Size) }}
+          </div>
+        </button>
+        <FileRowActions
+          class="mt-2 justify-center"
+          :class="iconActions ? undefined : 'opacity-0 group-hover:opacity-100 transition-opacity'"
+          :item="row"
+          :is-editor="isEditor"
+          :show-metadata="showMetadata"
+          @download="$emit('download', $event)"
+          @preview="$emit('preview', $event)"
+          @delete="$emit('delete', $event)"
+          @delete-folder="$emit('deleteFolder', $event)"
+          @download-folder="$emit('downloadFolder', $event)"
+          @rename-folder="$emit('renameFolder', $event)"
+          @rename-file="$emit('renameFile', $event)"
+          @metadata="$emit('metadata', $event)"
+        />
       </div>
-      </div>
-    </UTooltip>
+    </div>
   </div>
 </template>
 
@@ -139,18 +71,25 @@ import type { FileItem, TableRow } from '../../types'
 import { getFileIcon, formatFileSize } from '../../utils/fileUtils'
 import { getGridContainerClasses, getGridContainerStyle, getGridItemClasses } from '../../utils/gridConfig'
 
-defineProps<{
+withDefaults(defineProps<{
   data: TableRow[]
   isEditor: boolean
+  showMetadata?: boolean
+  iconActions?: boolean
   selectedIds: string[]
-}>()
+}>(), {
+  showMetadata: true,
+  iconActions: false
+})
 
 defineEmits<{
   select: [item: TableRow]
   doubleClick: [item: TableRow]
   download: [file: FileItem]
+  preview: [file: FileItem]
   delete: [file: FileItem]
   deleteFolder: [folder: { name: string, Prefix: string }]
+  downloadFolder: [folder: { name: string, Prefix: string }]
   renameFolder: [folder: { name: string, Prefix: string }]
   renameFile: [file: FileItem]
   metadata: [file: FileItem]

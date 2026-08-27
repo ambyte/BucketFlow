@@ -40,7 +40,7 @@ export default defineNuxtConfig({
       script: [
         {
           key: "public-theme-override",
-          innerHTML: `(function(){if(location.pathname.startsWith('/public')){var m=location.search.match(/[?&]theme=(dark|light)/);if(m)try{localStorage.setItem('nuxt-color-mode',m[1])}catch(e){}}})();`,
+          innerHTML: `(function(){if(location.pathname.startsWith('/public')){var m=location.search.match(/[?&]theme=(dark|light|system)/);try{localStorage.setItem('nuxt-color-mode',m?m[1]:'system')}catch(e){}}})();`,
           tagPosition: "head",
           tagPriority: 1,
         },

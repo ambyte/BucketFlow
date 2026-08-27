@@ -1,20 +1,42 @@
 <template>
-  <div class="min-h-screen flex flex-col" data-public-page>
-    <S3FileManager v-if="linkHash && isReady" :selected-destination-hash="linkHash"
-      :selected-bucket-name="selectedBucketName" :initial-path="initialFolderPath" :read-only="true"
-      :allow-upload="allowFileUpload" :allow-folder-creation="allowFolderCreation" class="h-screen" />
-    <div v-else-if="errorMessage" class="min-h-screen flex items-center justify-center">
-      <UAlert color="error" icon="i-heroicons-exclamation-triangle" :title="errorTitle" :description="errorMessage" />
-    </div>
-    <div v-else class="min-h-screen flex items-center justify-center">
-      <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary" />
+  <div
+    class="flex flex-col"
+    :class="isPageView ? 'h-screen' : 'min-h-screen'"
+    data-public-page
+  >
+    <PublicShareHeader
+      v-if="isPageView"
+      :location-label="locationLabel"
+    />
+    <div
+      :class="isPageView
+        ? 'w-full max-w-(--ui-container) mx-auto px-4 sm:px-6 lg:px-8 flex flex-col flex-1 min-h-0'
+        : undefined"
+    >
+      <S3FileManager
+        v-if="linkHash && isReady"
+        :selected-destination-hash="linkHash"
+        :selected-bucket-name="selectedBucketName"
+        :initial-path="initialFolderPath"
+        :read-only="true"
+        :allow-upload="allowFileUpload"
+        :allow-folder-creation="allowFolderCreation"
+        :class="isPageView ? 'flex-1 min-h-0' : 'h-screen'"
+      />
+      <div v-else-if="errorMessage" class="flex-1 flex items-center justify-center">
+        <UAlert color="error" icon="i-heroicons-exclamation-triangle" :title="errorTitle" :description="errorMessage" />
+      </div>
+      <div v-else class="flex-1 flex items-center justify-center">
+        <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { isValidColor, isValidNeutral } from '../../utils/theme'
+import { isValidColor, isValidNeutral, isValidThemeMode } from '../../utils/theme'
+import { sharedLocationLabel } from '../../utils/publicLinkUrl'
 
 definePageMeta({
   layout: false
@@ -22,6 +44,7 @@ definePageMeta({
 
 const route = useRoute()
 const hashFromQuery = computed(() => (route.query.path as string) || '')
+const isPageView = computed(() => route.query.view === 'page')
 
 const linkHash = ref('')
 const selectedBucketName = ref<string | undefined>(undefined)
@@ -31,6 +54,9 @@ const allowFolderCreation = ref(false)
 const isReady = ref(false)
 const errorTitle = ref('Invalid link')
 const errorMessage = ref('')
+const locationLabel = computed(() =>
+  sharedLocationLabel(selectedBucketName.value, initialFolderPath.value)
+)
 
 const primaryFromQuery = computed(() => {
   const q = (route.query.primary as string) || 'emerald'
@@ -43,8 +69,8 @@ const neutralFromQuery = computed(() => {
 })
 
 const themeFromQuery = computed(() => {
-  const q = (route.query.theme as string) || 'light'
-  return q === 'dark' ? 'dark' : 'light'
+  const q = (route.query.theme as string) || 'system'
+  return isValidThemeMode(q) ? q : 'system'
 })
 
 const appConfig = useAppConfig()
@@ -55,7 +81,14 @@ watch([primaryFromQuery, neutralFromQuery, themeFromQuery], ([primary, neutral, 
   if (!appConfig.ui.colors) appConfig.ui.colors = {} as any
   appConfig.ui.colors.primary = primary
   appConfig.ui.colors.neutral = neutral
-  colorMode.preference = theme as 'light' | 'dark'
+  colorMode.preference = theme
+}, { immediate: true })
+
+watch([isPageView, locationLabel], ([pageView, label]) => {
+  useSeoMeta({
+    title: pageView ? `${label} · BucketFlow` : 'BucketFlow',
+    ogTitle: pageView ? `${label} · BucketFlow` : 'BucketFlow'
+  })
 }, { immediate: true })
 
 const { resolvePublicLink } = useAppContext({ isPublic: true })
