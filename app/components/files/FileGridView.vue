@@ -1,12 +1,19 @@
 <template>
-  <div class="flex flex-wrap gap-2">
-    <div
+  <div
+    :class="gridContainerClasses"
+    :style="gridContainerStyle"
+  >
+    <UTooltip
       v-for="row in data"
       :key="row.name"
-      class="flex flex-col
-      items-center p-2 py-4 hover:bg-elevated rounded-lg transition-colors group relative"
+      :text="row.name"
+      :content="{ side: 'top', sideOffset: 8 }"
+      :ui="{ content: 'max-w-xs break-all' }"
       :class="gridClasses"
     >
+      <div
+        class="flex flex-col items-center p-2 py-4 hover:bg-elevated rounded-lg transition-colors group relative w-full"
+      >
       <div class="absolute top-1 left-1 z-10" @click.stop>
         <UCheckbox
           :model-value="selectedIds.includes(rowId(row))"
@@ -122,14 +129,15 @@
           </UTooltip>
         </template>
       </div>
-    </div>
+      </div>
+    </UTooltip>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { FileItem, TableRow } from '../../types'
 import { getFileIcon, formatFileSize } from '../../utils/fileUtils'
-import { getGridItemClasses } from '../../utils/gridConfig'
+import { getGridContainerClasses, getGridContainerStyle, getGridItemClasses } from '../../utils/gridConfig'
 
 defineProps<{
   data: TableRow[]
@@ -156,5 +164,7 @@ function rowId(item: TableRow): string {
   return item.Key ?? ''
 }
 
+const gridContainerClasses = getGridContainerClasses()
+const gridContainerStyle = getGridContainerStyle()
 const gridClasses = getGridItemClasses()
 </script>
