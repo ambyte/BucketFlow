@@ -47,7 +47,6 @@
           :metadata-columns="[...metadataColumns]"
           :selected-ids="selectedIds"
           :select-all-checkbox-value="selectAllCheckboxValue"
-          @select="handleSelect"
           @double-click="handleDoubleClick"
           @download="handleDownload"
           @preview="handlePreview"
@@ -655,15 +654,9 @@ watch(
   { deep: true }
 )
 
-const handleSelect = async (row: TableRow) => {
-  if (row.isFolder) {
-    await s3.navigateToFolder(row.name)
-  }
-}
-
 const handleDoubleClick = async (row: TableRow) => {
   if (row.isFolder) {
-    await handleSelect(row)
+    await s3.navigateToFolder(row.name)
   } else if (canPreview(row as FileItem)) {
     await handlePreview(row as FileItem)
   }
