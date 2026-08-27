@@ -89,6 +89,35 @@ export function decodeMetadataFromS3(
   return result
 }
 
+function serializeHeadValue(value: unknown): string | undefined {
+  if (value === undefined || value === null) return undefined
+  if (value instanceof Date) return value.toISOString()
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  if (value instanceof Uint8Array) return Buffer.from(value).toString('hex')
+  if (typeof value === 'object') {
+    try {
+      return JSON.stringify(value)
+    } catch {
+      return undefined
+    }
+  }
+  return String(value)
+}
+
+/** Flatten HeadObject system fields (Content-Type, ETag, encryption, etc.). */
+export function serializeObjectSystemMetadata(
+  head: HeadObjectCommandOutput
+): Record<string, string> {
+  const result: Record<string, string> = {}
+  for (const [key, value] of Object.entries(head)) {
+    if (key === '$metadata' || key === 'Metadata') continue
+    const serialized = serializeHeadValue(value)
+    if (serialized !== undefined && serialized !== '') result[key] = serialized
+  }
+  return result
+}
+
 export function getS3ErrorMessage(error: unknown): string {
   if (!error || typeof error !== 'object') {
     return typeof error === 'string' ? error : 'Unknown S3 error'

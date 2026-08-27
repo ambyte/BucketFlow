@@ -181,6 +181,8 @@
       v-model:open="showMetadata"
       :file-name="metadataItem?.name ?? ''"
       :entries="metadataEntries"
+      :object-entries="objectMetadataEntries"
+      :show-object-metadata="showObjectMetadata"
       :loading="metadataLoading"
       :saving="metadataSaving"
       :readonly="metadataReadOnly"
@@ -255,10 +257,13 @@ const metadataColumns = computed(() => s3.metadataColumns.value || [])
 const isLoading = computed(() => s3.isLoading.value)
 const uploadProgress = computed(() => s3.uploadProgress.value)
 
-const { isEditor } = props.readOnly
-  ? { isEditor: computed(() => false) }
+const { isEditor, isAdmin } = props.readOnly
+  ? { isEditor: computed(() => false), isAdmin: computed(() => false) }
   : useAuth()
 const effectiveIsEditor = computed(() => !props.readOnly && isEditor.value)
+const showObjectMetadata = computed(
+  () => !isPublicMode.value && isAdmin.value
+)
 const canUpload = computed(
   () => effectiveIsEditor.value || (isPublicMode.value && props.allowUpload)
 )
@@ -310,6 +315,7 @@ const showPublicLinkModal = ref(false)
 const showMetadata = ref(false)
 const metadataItem = ref<FileItem | null>(null)
 const metadataEntries = ref<{ key: string, value: string }[]>([])
+const objectMetadataEntries = ref<{ key: string, value: string }[]>([])
 const metadataLoading = ref(false)
 const metadataSaving = ref(false)
 const metadataReadOnly = computed(() => isPublicMode.value || props.readOnly)
@@ -624,6 +630,7 @@ watch(showMetadata, (open) => {
   if (!open) {
     metadataItem.value = null
     metadataEntries.value = []
+    objectMetadataEntries.value = []
   }
 })
 
@@ -774,12 +781,18 @@ const handleMetadata = async (file: FileItem) => {
   metadataItem.value = file
   showMetadata.value = true
   metadataEntries.value = []
+  objectMetadataEntries.value = []
   metadataLoading.value = true
   try {
     const key = currentPath.value + file.name
     const result = await s3.getObjectMetadata(key)
     if (result?.metadata) {
       metadataEntries.value = Object.entries(result.metadata).map(
+        ([key, value]) => ({ key, value: String(value ?? '') })
+      )
+    }
+    if (result?.objectMetadata) {
+      objectMetadataEntries.value = Object.entries(result.objectMetadata).map(
         ([key, value]) => ({ key, value: String(value ?? '') })
       )
     }
@@ -820,6 +833,7 @@ const closeMetadata = () => {
   showMetadata.value = false
   metadataItem.value = null
   metadataEntries.value = []
+  objectMetadataEntries.value = []
 }
 
 const handleRenameBucketClick = (bucketName?: string) => {

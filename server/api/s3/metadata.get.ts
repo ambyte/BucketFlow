@@ -1,8 +1,12 @@
-import { getObjectMetadata, decodeMetadataFromS3 } from '../../utils/s3'
+import {
+  getObjectMetadata,
+  decodeMetadataFromS3,
+  serializeObjectSystemMetadata
+} from '../../utils/s3'
 import { requireAuth, requireS3Destination, ensureBucketAllowed } from '../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
-  requireAuth(event, 'editor')
+  const auth = requireAuth(event, 'editor')
 
   const query = getQuery(event)
   const id = query.id as string
@@ -27,6 +31,9 @@ export default defineEventHandler(async (event) => {
     contentType: head.ContentType,
     contentLength: head.ContentLength,
     lastModified: head.LastModified,
-    etag: head.ETag
+    etag: head.ETag,
+    ...(auth.role === 'admin'
+      ? { objectMetadata: serializeObjectSystemMetadata(head) }
+      : {})
   }
 })

@@ -8,6 +8,7 @@ export function useMetadata(ctx: AppContext) {
     key: string
   ): Promise<{
     metadata: Record<string, string>
+    objectMetadata?: Record<string, string>
     contentType?: string
     contentLength?: number
     lastModified?: Date
@@ -24,6 +25,7 @@ export function useMetadata(ctx: AppContext) {
       const response = await apiCall(`/api/s3/metadata?${query}`)
       return {
         metadata: response.metadata || {},
+        objectMetadata: response.objectMetadata,
         contentType: response.contentType,
         contentLength: response.contentLength,
         lastModified: response.lastModified
