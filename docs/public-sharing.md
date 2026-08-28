@@ -19,8 +19,8 @@ Public links are available only for destinations with **Allowed anonymous access
 
 - target bucket/path;
 - expiration date (or permanent link);
-- layout: **Embed** (no header, for iframe) or **Shared page** (branded header);
-- public page theme (`primary`, `neutral`, `theme`);
+- layout: **Embed** (no header, for iframe) or **Shared page** (BucketFlow header, shared path, color-mode button);
+- public page theme (`primary`, `neutral`, `theme`); iframe copies always use embed layout;
 - permissions:
   - **Allow file upload** — allow file uploads;
   - **Allow folder creation** — allow creating folders.

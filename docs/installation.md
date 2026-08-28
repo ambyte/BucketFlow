@@ -7,7 +7,7 @@
 | Method | Requirements |
 |--------|--------------|
 | **Docker** | Docker 20.10+ and Docker Compose v2 |
-| **Local** | Node.js 20+, [pnpm](https://pnpm.io) 9+ |
+| **Local** | Node.js 20+, [pnpm](https://pnpm.io) 10+ |
 
 ---
 
@@ -57,7 +57,7 @@ docker compose up -d
 ### Docker setup benefits
 
 - Automatic restart (`restart: unless-stopped`)
-- Persistent data storage in `bucketflow-data`
+- Persistent data storage in `bucketflow-data` (users, destinations, generated JWT/encryption keys)
 - Health checks on `/api/health`
 
 ---
@@ -94,6 +94,19 @@ Build and preview production locally:
 pnpm build
 pnpm preview
 ```
+
+---
+
+## Security notes
+
+On first start the server generates a JWT signing secret and an encryption key and stores them with application data (the Docker volume path above). Keep that volume.
+
+Other defaults:
+
+- Session JWT is an HttpOnly `bf-auth` cookie (24 hours), not `localStorage`
+- Login is limited to 10 attempts per IP per 15 minutes; first-admin registration to 5 per IP per 15 minutes
+- Destination secret keys are encrypted at rest
+- App routes send a Content-Security-Policy; `/public` allows iframe embedding
 
 ---
 

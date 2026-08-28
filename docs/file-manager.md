@@ -9,9 +9,13 @@ After login, the main file manager is displayed.
 ## Navigation
 
 - **S3 Destination** — select active destination
-- **Bucket sidebar** — switch between buckets
+- **Refresh buckets** — reload buckets for the selected destination
+- **Bucket sidebar** — switch between buckets; drag the right edge to resize (width is remembered)
+- **Bucket size** — admins see used storage next to each bucket name
 - **Breadcrumbs** — navigate nested folders
 - **Grid/List** — toggle layout mode
+
+Row actions (metadata, rename, download, preview, delete) appear as icons on each file or folder in both views.
 
 ## Available operations
 
@@ -21,22 +25,32 @@ After login, the main file manager is displayed.
 | Upload | Upload one or multiple files |
 | Download | Download a single file |
 | Download selected | Bulk download selected files/folders as ZIP |
+| Delete selected | Bulk delete selected files/folders after confirmation |
 | Preview | Preview images, PDF, and text files |
-| Create folder | Create a folder |
+| Create folder | Create a folder in the current path |
 | Rename file/folder | Rename file or folder |
-| Delete file/folder | Delete file or folder |
+| Delete file/folder | Delete a single file or folder |
 | Metadata | View/edit S3 object metadata |
 
 ![Upload files](images/upload-files.png)
 ![Multi upload](images/upload-multiple-files.png)
 ![Preview files](images/preview-files.png)
 
+## Folder names
+
+A folder name is a single path segment:
+
+- 1–255 characters after trim
+- no `/` or `\`
+- not `.` or `..`
+
+Create nested folders by opening a parent folder first, then creating a new folder there.
+
 ## Bulk actions
 
-- Select multiple rows
-- Click **Download selected**
-- If only one file is selected, it is downloaded directly
-- If multiple items/folders are selected, a ZIP archive is generated
+- Select multiple rows (list) or tiles (grid)
+- **Download** — one file downloads directly; multiple items or folders become a ZIP
+- **Delete** — confirmation lists how many files and folders will be removed; this cannot be undone
 
 ![Download multiple files](images/download-multiple-files.png)
 
@@ -44,16 +58,19 @@ After login, the main file manager is displayed.
 
 If destination **Metadata columns** are configured, those keys appear as table columns.
 
-- View object metadata values
-- Edit custom metadata for objects
+- **User-defined metadata** — key-value pairs stored with the object; editors can change them
+- **Object metadata** (admin only) — read-only system fields from S3 `HeadObject` (content type, size, ETag, last modified, and related headers)
 
 ![Edit metadata](images/files-metadata.png)
 ![Metadata in table](images/files-metadata-view.png)
 
 ## Bucket operations (admin only)
 
-- **Create New Bucket** — create bucket
-- **Rename bucket** — rename bucket
+These actions sit on the main toolbar, not in the sidebar.
+
+- **Create New Bucket** — create a bucket
+- **Rename Bucket** — rename the selected bucket
+- **Delete Bucket** — empty and delete the selected bucket, then remove public links that targeted it. You must type the bucket name to confirm. This cannot be undone.
 
 ![Create bucket](images/new-bucket.png)
 ![Rename files and folders](images/rename-files-and-folders.png)

@@ -3,7 +3,7 @@
   <p>BucketFlow</p>
 </h1>
 
-**A modern, self-hosted S3-compatible storage file manager** built with Nuxt and Nuxt UI. Manage your cloud objects across AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean Spaces, and any S3-compatible service from a single interface. Includes one-command Docker deployment, role-based access, public sharing for buckets and folders, multi-file ZIP downloads, and an embeddable file viewer.
+**A modern, self-hosted S3-compatible storage file manager** built with Nuxt and Nuxt UI. Manage your cloud objects across AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean Spaces, and any S3-compatible service from a single interface. Includes one-command Docker deployment, role-based access, public sharing for buckets and folders, bulk ZIP download and delete, bucket administration, and an embeddable file viewer.
 
 <p align="center">
   <img src="docs/images/files.png" alt="BucketFlow — buckets and files" width="800">
@@ -13,11 +13,11 @@
 
 - **Multi-provider support** — Connect multiple S3-compatible destinations (AWS S3, R2, MinIO, Wasabi, Spaces, etc.)
 - **Role-based access** — Admin and Editor roles with per-destination user permissions
-- **Public sharing** — Generate and edit shareable links for buckets and folders, with expiration settings and granular permissions
-- **Embeddable viewer** — Embed the file browser via iframe with customizable themes (light/dark, colors)
-- **Advanced file operations** — Browse, upload, download, delete, create folders, rename files, edit metadata, and download multiple files/folders as ZIP
-- **Improved UX** — Cleaner table actions via contextual menu and more consistent navigation behavior across destinations/buckets
-- **Secure by design** — JWT authentication, bcrypt password hashing, credential isolation between roles
+- **Public sharing** — Shareable links for buckets and folders, with expiration, upload/folder permissions, and **Embed** vs **Shared page** layouts
+- **Embeddable viewer** — Embed the file browser via iframe with theme colors and `system` / light / dark mode
+- **File operations** — Browse, upload, preview, rename, edit metadata, download as ZIP, and bulk-delete selected files and folders
+- **Bucket tools** — Create, rename, and delete buckets (admin); refresh the list; see used size
+- **Secure by design** — HttpOnly JWT cookie, bcrypt passwords, AES-256-GCM for stored S3 secrets, login/register rate limits, CSP headers
 
 ---
 
@@ -28,7 +28,7 @@
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/your-org/bucketflow.git
+   git clone https://github.com/ambyte/bucketflow.git
    cd bucketflow
    ```
 
@@ -76,7 +76,7 @@ docker compose up -d
 The Compose setup includes:
 
 - Auto-restart policy
-- Persistent volume for user data and S3 configurations
+- Persistent volume for users, destinations, and generated secrets
 - Health check on `/api/health`
 
 ---
@@ -110,6 +110,12 @@ pnpm preview
 ├── Dockerfile              # Multi-stage production build
 └── docker-compose.yml      # One-command deployment
 ```
+
+---
+
+## Documentation
+
+Full documentation lives in [`docs/`](docs/index.md).
 
 ---
 

@@ -18,9 +18,11 @@ Supported providers include AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean S
 | **Multiple S3 destinations** | Connect and operate several storage backends at once |
 | **Role-based access** | **Admin** and **Editor** roles with per-destination permissions |
 | **Public links** | Create anonymous links scoped to a bucket or folder |
+| **Link layouts** | Compact embed (iframe) or branded shared page |
 | **Link permissions** | Read-only by default, optionally allow uploads/folder creation |
-| **File operations** | Browse, upload, download, delete, rename, preview |
-| **S3 metadata support** | Display and edit custom object metadata |
+| **File operations** | Browse, upload, download, ZIP, bulk delete, rename, preview |
+| **Bucket tools** | Create, rename, delete (admin); |
+| **S3 metadata** | Custom user metadata; admins also see read-only object system metadata |
 | **Embeddable viewer** | Embed the public view via `iframe` |
 
 ![Files and folders](images/files.png)
@@ -41,5 +43,3 @@ Supported providers include AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean S
 - [Public Sharing](public-sharing.md)
 - [Embeddable Viewer](embeddable-viewer.md)
 - [Project Structure](project-structure.md)
-
-

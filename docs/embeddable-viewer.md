@@ -29,7 +29,7 @@ You can pass theme settings through query parameters:
 - `primary` — primary color
 - `neutral` — neutral palette
 - `theme` — `system` (default), `light`, or `dark`
-- omit `view=page` in embed URLs so the compact layout without a header is used
+- omit `view=page` in embed URLs so the compact layout without a header is used (the generated iframe code always does this)
 
 ## Best practices
 

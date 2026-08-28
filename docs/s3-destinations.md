@@ -18,7 +18,7 @@ Configuration is available in **Admin Panel → S3 Configuration**.
 |------|---------|
 | **Name** | Display name of the destination |
 | **Access Key ID** | S3 access key |
-| **Secret Access Key** | S3 secret key |
+| **Secret Access Key** | S3 secret key. Required when creating. When editing, leave blank to keep the stored key (the secret is never shown again) |
 | **Buckets** | Optional space-separated bucket allow-list |
 | **Metadata columns** | Space-separated metadata keys displayed as file table columns |
 | **Region** | Provider region, e.g. `us-east-1` |
@@ -29,10 +29,12 @@ Configuration is available in **Admin Panel → S3 Configuration**.
 
 ![New destination form](images/new-destination.png)
 
+Secrets are encrypted at rest (AES-256-GCM) in the app data store. The API never returns the secret to the browser.
+
 ## Additional actions
 
 - **Test Connection** — validate connectivity before saving
-- **Edit** — update destination settings
+- **Edit** — update destination settings (omit the secret to keep the current one)
 - **Delete** — remove destination (does not delete data from S3)
 
 ## Supported providers

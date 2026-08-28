@@ -11,27 +11,28 @@ Current repository structure at a high level:
 │   │   ├── admin/               # Admin panel components
 │   │   ├── files/               # File manager and related modals
 │   │   └── common/
-│   ├── composables/             # useAuth, useAppContext, etc.
+│   ├── composables/             # useAuth, useAppContext, useFiles, useBuckets, …
 │   ├── layouts/                 # auth, default
 │   ├── middleware/              # Client middleware
 │   ├── pages/                   # login, index, admin, public
-│   ├── utils/                   # UI utilities
+│   ├── utils/                   # validators, publicLinkUrl, gridConfig, theme
 │   └── types/                   # Shared types
 ├── server/                      # Nitro API and server logic
 │   ├── api/
-│   │   ├── auth/                # Authentication and setup
+│   │   ├── auth/                # Login, logout, register, session
 │   │   ├── admin/               # Destination/user administration
 │   │   ├── destinations/        # Destination availability/testing
-│   │   ├── s3/                  # S3 operations (list, objects, folders, metadata)
+│   │   ├── s3/                  # Buckets, objects, folders, metadata
 │   │   ├── links/               # Authenticated public-link management
 │   │   └── public/              # Public API by link hash
-│   ├── middleware/              # Server auth middleware
-│   ├── plugins/                 # Runtime/init plugins
-│   └── utils/                   # Auth, storage, S3, publicAccess, zip-download
+│   ├── middleware/              # Cookie JWT auth
+│   ├── plugins/                 # Init JWT/encryption secrets
+│   └── utils/                   # storage, S3, crypto, cookies, rate-limit, zip
 ├── docs/                        # Docsify documentation
 │   ├── images/                  # Screenshots and assets
 │   ├── index.html               # Docsify entry
 │   ├── index.md                 # Docs home page
+│   ├── changelog.md             # Changes since origin/main
 │   └── sidebar.md               # Docs sidebar
 ├── public/                      # Static files
 ├── Dockerfile                   # Production image build
@@ -45,7 +46,7 @@ Current repository structure at a high level:
 - [Nuxt 4](../package.json)
 - [Nuxt UI](../package.json)
 - AWS SDK v3 for S3 API access
-- JWT + bcryptjs for authentication
+- JWT in an HttpOnly cookie + bcryptjs for authentication
 - Zod for API input validation
 
 ## S3 compatibility
