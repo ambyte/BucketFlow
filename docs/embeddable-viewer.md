@@ -1,7 +1,5 @@
 # Embeddable Viewer
 
-[← Back to index](index.md)
-
 BucketFlow public view can be embedded into any website via `iframe`.
 
 ![Public view](images/public-link-with-upload-permission.png)

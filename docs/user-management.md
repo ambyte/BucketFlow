@@ -1,7 +1,5 @@
 # User Management
 
-[← Back to index](index.md)
-
 This section is available at **Admin Panel → Users**.
 
 Only **Editor** users are created via UI. The first admin account is created on initial setup.

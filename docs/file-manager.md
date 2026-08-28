@@ -1,7 +1,5 @@
 # File Manager
 
-[← Back to index](index.md)
-
 After login, the main file manager is displayed.
 
 ![File manager](images/files.png)

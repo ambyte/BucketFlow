@@ -1,7 +1,13 @@
-<h1 align="center">
+---
+hide:
+  - toc
+---
+
+<p align="center">
   <img src="images/logo.png" alt="BucketFlow Logo" width="180">
-  <p>BucketFlow</p>
-</h1>
+</p>
+
+# BucketFlow
 
 **BucketFlow** is a modern self-hosted file manager for S3-compatible storage.
 
@@ -21,7 +27,7 @@ Supported providers include AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean S
 | **Link layouts** | Compact embed (iframe) or branded shared page |
 | **Link permissions** | Read-only by default, optionally allow uploads/folder creation |
 | **File operations** | Browse, upload, download, ZIP, bulk delete, rename, preview |
-| **Bucket tools** | Create, rename, delete (admin); |
+| **Bucket tools** | Create, rename, delete (admin) |
 | **S3 metadata** | Custom user metadata; admins also see read-only object system metadata |
 | **Embeddable viewer** | Embed the public view via `iframe` |
 

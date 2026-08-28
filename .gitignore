@@ -16,6 +16,9 @@ node_modules
 logs
 *.log
 
+# MkDocs
+/site
+
 # Misc
 .DS_Store
 .fleet

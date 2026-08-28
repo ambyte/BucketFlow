@@ -1,0 +1,85 @@
+site_name: BucketFlow
+site_url: https://bucketflow.ambyte.org/
+site_description: A modern, self-hosted S3-compatible storage file manager
+site_author: ambyte
+
+repo_name: ambyte/BucketFlow
+repo_url: https://github.com/ambyte/BucketFlow
+edit_uri: edit/main/docs/
+
+copyright: MIT License
+
+theme:
+  name: material
+  language: en
+  logo: images/logo.png
+  favicon: images/favicon.ico
+  palette:
+    - media: "(prefers-color-scheme)"
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to system preference
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.action.edit
+    - toc.follow
+
+plugins:
+  - search
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ambyte/BucketFlow
+
+nav:
+  - Overview: index.md
+  - Installation: installation.md
+  - S3 Destinations: s3-destinations.md
+  - File Manager: file-manager.md
+  - Public Sharing: public-sharing.md
+  - Embeddable Viewer: embeddable-viewer.md
+  - User Management: user-management.md
+  - User Roles: user-roles.md
+  - Project Structure: project-structure.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true

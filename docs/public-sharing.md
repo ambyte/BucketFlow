@@ -1,7 +1,5 @@
 # Public Sharing
 
-[← Back to index](index.md)
-
 Public links are available only for destinations with **Allowed anonymous access** enabled.
 
 ![Manage public links](images/manage-public-links.png)

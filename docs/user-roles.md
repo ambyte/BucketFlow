@@ -1,7 +1,5 @@
 # User Roles
 
-[← Back to index](index.md)
-
 BucketFlow uses two roles: **Admin** and **Editor**.
 
 ## Admin

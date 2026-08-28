@@ -115,7 +115,14 @@ pnpm preview
 
 ## Documentation
 
-Full documentation lives in [`docs/`](docs/index.md).
+Full documentation: [bucketflow.ambyte.org](https://bucketflow.ambyte.org/). Sources are in [`docs/`](docs/index.md).
+
+Preview locally:
+
+```bash
+pip install -r requirements-docs.txt
+mkdocs serve
+```
 
 ---
 

@@ -1,7 +1,5 @@
 # S3 Destinations
 
-[← Back to index](index.md)
-
 An S3 destination is a connection to a specific S3-compatible provider.
 
 Configuration is available in **Admin Panel → S3 Configuration**.

@@ -1,7 +1,5 @@
 # Project Structure
 
-[← Back to index](index.md)
-
 Current repository structure at a high level:
 
 ```text
@@ -28,12 +26,10 @@ Current repository structure at a high level:
 │   ├── middleware/              # Cookie JWT auth
 │   ├── plugins/                 # Init JWT/encryption secrets
 │   └── utils/                   # storage, S3, crypto, cookies, rate-limit, zip
-├── docs/                        # Docsify documentation
+├── docs/                        # MkDocs documentation
 │   ├── images/                  # Screenshots and assets
-│   ├── index.html               # Docsify entry
-│   ├── index.md                 # Docs home page
-│   ├── changelog.md             # Changes since origin/main
-│   └── sidebar.md               # Docs sidebar
+│   └── index.md                 # Docs home page
+├── mkdocs.yml                   # MkDocs + Material config
 ├── public/                      # Static files
 ├── Dockerfile                   # Production image build
 └── docker-compose.yml           # Quick container launch
@@ -43,8 +39,8 @@ Current repository structure at a high level:
 
 ## Technologies
 
-- [Nuxt 4](../package.json)
-- [Nuxt UI](../package.json)
+- [Nuxt 4](https://nuxt.com)
+- [Nuxt UI](https://ui.nuxt.com)
 - AWS SDK v3 for S3 API access
 - JWT in an HttpOnly cookie + bcryptjs for authentication
 - Zod for API input validation

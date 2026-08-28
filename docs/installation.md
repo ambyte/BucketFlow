@@ -1,7 +1,5 @@
 # Installation
 
-[← Back to index](index.md)
-
 ## Requirements
 
 | Method | Requirements |
@@ -21,11 +19,11 @@ cd bucketflow
 docker compose up -d
 ```
 
-This option uses the local [Dockerfile](../Dockerfile) and is ideal for development or custom builds.
+This option uses the local [Dockerfile](https://github.com/ambyte/BucketFlow/blob/main/Dockerfile) and is ideal for development or custom builds.
 
 ### Option B: pre-built GHCR image
 
-Create a [docker-compose.yml](../docker-compose.yml) with the following service:
+Create a [docker-compose.yml](https://github.com/ambyte/BucketFlow/blob/main/docker-compose.yml) with the following service:
 
 ```yaml
 services:
