@@ -8,6 +8,13 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/main.css"],
 
+  runtimeConfig: {
+    public: {
+      appVersion: process.env.npm_package_version || "3.0.0",
+      githubRepoUrl: "https://github.com/ambyte/BucketFlow",
+    },
+  },
+
   nitro: {
     storage: {
       data: {

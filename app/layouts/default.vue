@@ -21,7 +21,7 @@
             </UBadge>
           </div>
 
-          <div class="flex items-end justify-end gap-4">
+          <div class="flex items-center justify-end gap-4">
             <UButton
               to="/"
               variant="ghost"
@@ -49,6 +49,16 @@
             </UButton>
 
             <UColorModeButton class="ml-6" />
+
+            <UButton
+              :to="repositoryUrl"
+              target="_blank"
+              variant="subtle"
+              color="neutral"
+              size="sm"
+            >
+              v{{ version }}
+            </UButton>
           </div>
         </div>
       </div>
@@ -66,6 +76,11 @@ import logoImg from '~/assets/logo.png'
 
 const route = useRoute()
 const { user, isAdmin, logout } = useAuth()
+const config = useRuntimeConfig()
+const version = computed(() => String(config.public.appVersion || '0.0.0'))
+const repositoryUrl = computed(() =>
+  String(config.public.githubRepoUrl || 'https://github.com/ambyte/BucketFlow')
+)
 const items = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Files',

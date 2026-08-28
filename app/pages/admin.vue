@@ -4,7 +4,6 @@
       <UPageHeader
         title="Admin Panel"
         description="Manage S3 configuration and users"
-        :links="[]"
       />
 
       <UTabs
