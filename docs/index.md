@@ -25,8 +25,8 @@ Supported providers include AWS S3, Cloudflare R2, MinIO, Wasabi, DigitalOcean S
 | **Role-based access** | **Admin** and **Editor** roles with per-destination permissions |
 | **Public links** | Create anonymous links scoped to a bucket or folder |
 | **Link layouts** | Compact embed (iframe) or branded shared page |
-| **Link permissions** | Read-only by default, optionally allow uploads/folder creation |
-| **File operations** | Browse, upload, download, ZIP, bulk delete, rename, preview |
+| **Link permissions** | Read-only by default, optionally allow uploads, text-file editing, or folder creation |
+| **File operations** | Browse, upload, download, ZIP, bulk delete, rename, preview and copy text, edit and save text files |
 | **Bucket tools** | Create, rename, delete (admin) |
 | **S3 metadata** | Custom user metadata; admins also see read-only object system metadata |
 | **Embeddable viewer** | Embed the public view via `iframe` |

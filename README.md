@@ -13,9 +13,9 @@
 
 - **Multi-provider support** — Connect multiple S3-compatible destinations (AWS S3, R2, MinIO, Wasabi, Spaces, etc.)
 - **Role-based access** — Admin and Editor roles with per-destination user permissions
-- **Public sharing** — Shareable links for buckets and folders, with expiration, upload/folder permissions, and **Embed** vs **Shared page** layouts
+- **Public sharing** — Shareable links for buckets and folders, with expiration, upload/folder/text-edit permissions, and **Embed** vs **Shared page** layouts
 - **Embeddable viewer** — Embed the file browser via iframe with theme colors and `system` / light / dark mode
-- **File operations** — Browse, upload, preview, rename, edit metadata, download as ZIP, and bulk-delete selected files and folders
+- **File operations** — Browse, upload, preview and copy text, edit and save text files, rename, edit metadata, download as ZIP, and bulk-delete selected files and folders
 - **Bucket tools** — Create, rename, and delete buckets (admin); refresh the list; see used size
 - **Secure by design** — HttpOnly JWT cookie, bcrypt passwords, AES-256-GCM for stored S3 secrets, login/register rate limits, CSP headers
 

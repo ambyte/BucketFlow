@@ -12,6 +12,7 @@ After login, the main file manager is displayed.
 - **Bucket size** — admins see used storage next to each bucket name
 - **Breadcrumbs** — navigate nested folders
 - **Grid/List** — toggle layout mode
+- **List sorting** — sort by name, size, or date; dates use `DD.MM.YYYY HH:mm` format
 
 Row actions (metadata, rename, download, preview, delete) appear as icons on each file or folder in both views.
 
@@ -24,7 +25,7 @@ Row actions (metadata, rename, download, preview, delete) appear as icons on eac
 | Download | Download a single file |
 | Download selected | Bulk download selected files/folders as ZIP |
 | Delete selected | Bulk delete selected files/folders after confirmation |
-| Preview | Preview images, PDF, and text files; editors can also edit and save text files |
+| Preview | Preview images, PDF, and text files; copy text; editors can edit and save text files |
 | Create folder | Create a folder in the current path |
 | Rename file/folder | Rename file or folder |
 | Delete file/folder | Delete a single file or folder |
@@ -33,6 +34,14 @@ Row actions (metadata, rename, download, preview, delete) appear as icons on eac
 ![Upload files](images/upload-files.png)
 ![Multi upload](images/upload-multiple-files.png)
 ![Preview files](images/preview-files.png)
+
+## Text-file preview and editing
+
+The preview supports common text and source-code formats, including `.txt`, `.md`, `.json`, `.js`, `.ts`, `.html`, `.css`, `.yaml`, `.py`, and `.sql`. Text files are recognized by their file extension.
+
+- Select **Copy** in the preview to copy the displayed text. While editing, it copies the current draft.
+- Editors can select **Edit**, then **Save** to store their changes or **Cancel** to discard them. The preview is read-only until editing is started.
+- In a public link, text editing is available only when **Allow text file edit** is enabled. It applies only to existing text files inside the link's shared path; it does not allow uploads.
 
 ## Folder names
 
