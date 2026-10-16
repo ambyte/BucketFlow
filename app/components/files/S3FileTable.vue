@@ -1,6 +1,9 @@
 <template>
   <div class="w-full overflow-x-auto">
-    <table class="w-full min-w-[600px]">
+    <table
+      class="w-full min-w-[600px]"
+      style="--date-column-width: 8rem"
+    >
       <colgroup>
         <col style="width: 2.75rem">
         <col style="width: 100%">
@@ -10,7 +13,7 @@
           style="width: 1%; max-width: 400px"
         >
         <col style="width: 8rem">
-        <col style="width: 8rem">
+        <col style="width: var(--date-column-width)">
         <col :style="iconActions ? 'width: 7.5rem' : 'width: 3.5rem'">
       </colgroup>
       <thead>
@@ -53,7 +56,10 @@
               @click="sortBy('Size')"
             />
           </th>
-          <th class="text-right w-32 py-3 px-4 font-medium">
+          <th
+            class="text-right py-3 px-4 font-medium"
+            style="min-width: var(--date-column-width)"
+          >
             <UButton
               color="neutral"
               variant="ghost"
@@ -125,12 +131,12 @@
               formatFileSize(item.Size)
             }}</span>
           </td>
-          <td class="py-2 px-2 text-right">
+          <td class="py-2 px-2 text-right whitespace-nowrap">
             <span
               v-if="!item.isFolder"
               class="text-muted text-sm"
             >{{
-              formatDateShort(item.LastModified)
+              formatDateTimeShort(item.LastModified)
             }}</span>
           </td>
           <td
@@ -186,7 +192,7 @@ import type { FileItem, TableRow } from '../../types'
 import {
   getFileIcon,
   formatFileSize,
-  formatDateShort,
+  formatDateTimeShort,
   canPreview
 } from '../../utils/fileUtils'
 import { useDoubleClick } from '../../composables/useDoubleClick'
