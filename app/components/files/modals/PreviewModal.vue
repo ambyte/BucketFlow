@@ -33,6 +33,16 @@
           v-else-if="isText && textContent !== null"
           class="w-full max-h-[60vh] overflow-auto"
         >
+          <div class="flex justify-end pb-2">
+            <UButton
+              icon="i-heroicons-clipboard"
+              variant="soft"
+              size="sm"
+              @click="copyTextContent"
+            >
+              Copy text
+            </UButton>
+          </div>
           <pre
             class="p-4 bg-elevated rounded-lg text-sm text-highlighted font-mono whitespace-pre-wrap wrap-break-word"
           ><code>{{ textContent }}</code></pre>
@@ -75,6 +85,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const toast = useToast()
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
@@ -85,4 +96,23 @@ const isOpen = computed({
   get: () => props.open,
   set: value => emit('update:open', value)
 })
+
+const copyTextContent = async () => {
+  if (props.textContent === null) return
+
+  try {
+    await navigator.clipboard.writeText(props.textContent)
+    toast.add({
+      title: 'Copied',
+      description: 'Text copied to clipboard',
+      color: 'success'
+    })
+  } catch (error) {
+    toast.add({
+      title: 'Failed to copy',
+      description: error instanceof Error ? error.message : 'Could not copy text to clipboard',
+      color: 'error'
+    })
+  }
+}
 </script>
