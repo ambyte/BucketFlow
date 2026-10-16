@@ -31,9 +31,9 @@
         />
         <div
           v-else-if="isText && textContent !== null"
-          class="w-full max-h-[60vh] overflow-auto"
+          class="flex w-full max-h-[60vh] flex-col"
         >
-          <div class="flex items-center justify-between gap-2 pb-2">
+          <div class="flex shrink-0 items-center justify-between gap-2 pb-2">
             <div class="flex items-center gap-2">
               <template v-if="editing">
                 <UButton
@@ -74,17 +74,19 @@
               Copy
             </UButton>
           </div>
-          <textarea
-            v-if="editing"
-            v-model="draftText"
-            class="w-full h-[60vh] p-4 bg-elevated rounded-lg text-sm text-highlighted font-mono whitespace-pre-wrap wrap-break-word resize-y focus-visible:outline-primary"
-            :disabled="saving"
-            :aria-label="`Edit ${fileName}`"
-          />
-          <pre
-            v-else
-            class="p-4 bg-elevated rounded-lg text-sm text-highlighted font-mono whitespace-pre-wrap wrap-break-word"
-          ><code>{{ textContent }}</code></pre>
+          <div class="min-h-0 flex-1 overflow-auto">
+            <textarea
+              v-if="editing"
+              v-model="draftText"
+              class="w-full h-[60vh] p-4 bg-elevated rounded-lg text-sm text-highlighted font-mono whitespace-pre-wrap wrap-break-word resize-y focus-visible:outline-primary"
+              :disabled="saving"
+              :aria-label="`Edit ${fileName}`"
+            />
+            <pre
+              v-else
+              class="p-4 bg-elevated rounded-lg text-sm text-highlighted font-mono whitespace-pre-wrap wrap-break-word"
+            ><code>{{ textContent }}</code></pre>
+          </div>
         </div>
         <div
           v-else
