@@ -346,6 +346,53 @@ export function useFiles(ctx: AppContext) {
     }
   }
 
+  const getTextContent = async (
+    key: string
+  ): Promise<{ content: string, contentType: string }> => {
+    const identifier = getIdentifier()
+    if (!identifier || !currentBucketName.value) {
+      throw new Error('Please select destination and bucket')
+    }
+
+    const query = buildQuery(identifier, {
+      bucketName: currentBucketName.value
+    })
+    return await apiCall(
+      `${buildApiEndpoint('/s3/objects/content')}/${encodeURIComponent(key)}?${query}`
+    )
+  }
+
+  const saveTextContent = async (
+    key: string,
+    content: string,
+    contentType: string
+  ): Promise<boolean> => {
+    const identifier = getIdentifier()
+    if (!identifier || !currentBucketName.value) {
+      showToastError('Failed to save file', 'Please select destination and bucket')
+      return false
+    }
+
+    const query = buildQuery(identifier, {
+      bucketName: currentBucketName.value
+    })
+
+    try {
+      await apiCall(
+        `${buildApiEndpoint('/s3/objects/content')}/${encodeURIComponent(key)}?${query}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({ content, contentType })
+        }
+      )
+      showToastSuccess('File saved')
+      return true
+    } catch (error: unknown) {
+      showToastError('Failed to save file', error)
+      return false
+    }
+  }
+
   const downloadZip = async (
     keys: string[],
     prefixes: string[],
@@ -445,6 +492,8 @@ export function useFiles(ctx: AppContext) {
     deleteFile,
     deleteSelected,
     renameFile,
-    getPreviewUrl
+    getPreviewUrl,
+    getTextContent,
+    saveTextContent
   }
 }

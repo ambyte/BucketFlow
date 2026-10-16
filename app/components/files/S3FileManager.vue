@@ -195,10 +195,13 @@
       :file-name="previewItem?.name ?? ''"
       :preview-url="previewUrl"
       :text-content="previewTextContent"
+      :editable="canEditTextFile && previewContentLoaded"
+      :saving="previewSaving"
       :loading="previewLoading"
       :is-image="previewItem ? isImage(previewItem) : false"
       :is-pdf="previewItem ? isPDF(previewItem) : false"
       :is-text="previewItem ? isTextFile(previewItem) : false"
+      @save="handleSavePreview"
       @download="previewItem && handleDownload(previewItem)"
     />
     <PublicLinkModal
@@ -229,6 +232,7 @@ interface Props {
   canCreatePublicLink?: boolean
   initialPath?: string
   allowUpload?: boolean
+  allowTextFileEdit?: boolean
   allowFolderCreation?: boolean
 }
 
@@ -236,6 +240,7 @@ const props = withDefaults(defineProps<Props>(), {
   readOnly: false,
   canCreatePublicLink: false,
   allowUpload: false,
+  allowTextFileEdit: false,
   allowFolderCreation: false
 })
 
@@ -261,6 +266,9 @@ const { isEditor, isAdmin } = props.readOnly
   ? { isEditor: computed(() => false), isAdmin: computed(() => false) }
   : useAuth()
 const effectiveIsEditor = computed(() => !props.readOnly && isEditor.value)
+const canEditTextFile = computed(
+  () => effectiveIsEditor.value || (isPublicMode.value && props.allowTextFileEdit)
+)
 const showObjectMetadata = computed(
   () => !isPublicMode.value && isAdmin.value
 )
@@ -286,7 +294,10 @@ const showCreateFolder = ref(false)
 const previewItem = ref<FileItem | null>(null)
 const previewUrl = ref<string | null>(null)
 const previewTextContent = ref<string | null>(null)
+const previewContentType = ref<string | null>(null)
+const previewContentLoaded = ref(false)
 const previewLoading = ref(false)
+const previewSaving = ref(false)
 const isCreatingFolder = ref(false)
 
 const showDeleteFolderConfirm = ref(false)
@@ -693,29 +704,45 @@ const handlePreview = async (file: FileItem) => {
   showPreview.value = true
   previewLoading.value = true
   previewTextContent.value = null
+  previewContentType.value = null
+  previewContentLoaded.value = false
   previewUrl.value = null
 
   const key = currentPath.value + file.name
 
-  if (isTextFile(file)) {
-    try {
-      const url = await s3.getPreviewUrl(key)
-      if (url) {
-        const response = await fetch(url)
-        if (response.ok) {
-          previewTextContent.value = await response.text()
-        } else {
-          previewTextContent.value = 'Failed to load file content'
-        }
-      }
-    } catch {
-      previewTextContent.value = 'Error loading file content'
+  try {
+    if (isTextFile(file)) {
+      const response = await s3.getTextContent(key)
+      previewTextContent.value = response.content
+      previewContentType.value = response.contentType
+      previewContentLoaded.value = true
+    } else {
+      previewUrl.value = await s3.getPreviewUrl(key)
     }
-  } else {
-    previewUrl.value = await s3.getPreviewUrl(key)
+  } catch (error) {
+    previewTextContent.value = error instanceof Error
+      ? error.message
+      : 'Error loading file content'
+  } finally {
+    previewLoading.value = false
   }
+}
 
-  previewLoading.value = false
+const handleSavePreview = async (content: string) => {
+  if (!previewItem.value || !canEditTextFile.value) return
+
+  previewSaving.value = true
+  try {
+    const key = currentPath.value + previewItem.value.name
+    const saved = await s3.saveTextContent(
+      key,
+      content,
+      previewContentType.value || 'text/plain; charset=utf-8'
+    )
+    if (saved) previewTextContent.value = content
+  } finally {
+    previewSaving.value = false
+  }
 }
 
 const handleDelete = async (file: FileItem) => {

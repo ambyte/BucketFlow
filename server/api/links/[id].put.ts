@@ -4,6 +4,7 @@ import { z } from 'zod'
 
 const updateSchema = z.object({
   allowFileUpload: z.boolean().optional(),
+  allowTextFileEdit: z.boolean().optional(),
   allowFolderCreation: z.boolean().optional(),
   expiresAt: z.string().optional().nullable()
 })
@@ -34,6 +35,7 @@ export default defineEventHandler(async (event) => {
 
   const updated = await updatePublicLink(id, {
     ...(data.allowFileUpload !== undefined && { allowFileUpload: data.allowFileUpload }),
+    ...(data.allowTextFileEdit !== undefined && { allowTextFileEdit: data.allowTextFileEdit }),
     ...(data.allowFolderCreation !== undefined && { allowFolderCreation: data.allowFolderCreation }),
     ...(data.expiresAt !== undefined && { expiresAt: data.expiresAt ?? undefined })
   })

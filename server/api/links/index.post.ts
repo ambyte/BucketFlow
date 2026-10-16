@@ -17,6 +17,7 @@ const createSchema = z.object({
   bucketName: z.string().min(1),
   path: z.string().default(''),
   allowFileUpload: z.boolean().optional().default(false),
+  allowTextFileEdit: z.boolean().optional().default(false),
   allowFolderCreation: z.boolean().optional().default(false),
   hash: z.string().regex(/^[a-f0-9]{16}$/).optional(),
   draft: z.boolean().optional().default(false),
@@ -48,6 +49,7 @@ export default defineEventHandler(async (event) => {
         bucketName: data.bucketName,
         path: data.path ?? '',
         allowFileUpload: data.allowFileUpload ?? false,
+        allowTextFileEdit: data.allowTextFileEdit ?? false,
         allowFolderCreation: data.allowFolderCreation ?? false,
         expiresAt: data.expiresAt
       }
@@ -70,6 +72,7 @@ export default defineEventHandler(async (event) => {
     bucketName: data.bucketName,
     path: data.path ?? '',
     allowFileUpload: data.allowFileUpload ?? false,
+    allowTextFileEdit: data.allowTextFileEdit ?? false,
     allowFolderCreation: data.allowFolderCreation ?? false,
     createdBy: auth.userId,
     hash: data.hash,

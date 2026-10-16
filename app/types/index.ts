@@ -24,6 +24,7 @@ export interface PublicLink {
   bucketName: string
   path: string
   allowFileUpload?: boolean
+  allowTextFileEdit?: boolean
   allowFolderCreation?: boolean
   expiresAt?: string
   createdAt: string

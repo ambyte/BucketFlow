@@ -627,6 +627,62 @@ export async function getPresignedDownloadUrl(
   return getSignedUrl(client, command, { expiresIn })
 }
 
+export async function getTextObject(
+  destination: S3Destination,
+  bucketName: string,
+  key: string
+): Promise<{ content: string, contentType: string }> {
+  const client = getS3Client(destination)
+  const response = await send<{
+    Body?: { transformToString: () => Promise<string> }
+    ContentType?: string
+  }>(client, new GetObjectCommand({ Bucket: bucketName, Key: key }))
+
+  if (!response.Body) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Object has no content'
+    })
+  }
+
+  return {
+    content: await response.Body.transformToString(),
+    contentType: response.ContentType || 'text/plain; charset=utf-8'
+  }
+}
+
+export async function saveTextObject(
+  destination: S3Destination,
+  bucketName: string,
+  key: string,
+  content: string,
+  contentType: string
+): Promise<void> {
+  const client = getS3Client(destination)
+  const head = await getObjectMetadata(destination, bucketName, key)
+  await send(
+    client,
+    new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: content,
+      ContentType: contentType,
+      Metadata: head.Metadata,
+      ...(head.CacheControl ? { CacheControl: head.CacheControl } : {}),
+      ...(head.ContentDisposition
+        ? { ContentDisposition: head.ContentDisposition }
+        : {}),
+      ...(head.ContentEncoding ? { ContentEncoding: head.ContentEncoding } : {}),
+      ...(head.ContentLanguage ? { ContentLanguage: head.ContentLanguage } : {}),
+      ...(head.Expires instanceof Date ? { Expires: head.Expires } : {}),
+      ...(head.StorageClass ? { StorageClass: head.StorageClass } : {}),
+      ...(head.WebsiteRedirectLocation
+        ? { WebsiteRedirectLocation: head.WebsiteRedirectLocation }
+        : {})
+    })
+  )
+}
+
 export async function getPresignedUploadUrl(
   destination: S3Destination,
   bucketName: string,

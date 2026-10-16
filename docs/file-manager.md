@@ -24,7 +24,7 @@ Row actions (metadata, rename, download, preview, delete) appear as icons on eac
 | Download | Download a single file |
 | Download selected | Bulk download selected files/folders as ZIP |
 | Delete selected | Bulk delete selected files/folders after confirmation |
-| Preview | Preview images, PDF, and text files |
+| Preview | Preview images, PDF, and text files; editors can also edit and save text files |
 | Create folder | Create a folder in the current path |
 | Rename file/folder | Rename file or folder |
 | Delete file/folder | Delete a single file or folder |

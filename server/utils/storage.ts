@@ -247,7 +247,7 @@ export async function createPublicLink(
 
 export async function updatePublicLink(
   id: string,
-  updates: Partial<Pick<PublicLink, 'allowFileUpload' | 'allowFolderCreation' | 'expiresAt'>>
+  updates: Partial<Pick<PublicLink, 'allowFileUpload' | 'allowTextFileEdit' | 'allowFolderCreation' | 'expiresAt'>>
 ): Promise<PublicLink> {
   const links = await getPublicLinks()
   const link = links.find(l => l.id === id)
@@ -255,6 +255,7 @@ export async function updatePublicLink(
     throw new Error('Public link not found')
   }
   if (updates.allowFileUpload !== undefined) link.allowFileUpload = updates.allowFileUpload
+  if (updates.allowTextFileEdit !== undefined) link.allowTextFileEdit = updates.allowTextFileEdit
   if (updates.allowFolderCreation !== undefined) link.allowFolderCreation = updates.allowFolderCreation
   if (updates.expiresAt !== undefined) link.expiresAt = updates.expiresAt
   await savePublicLinks(links)

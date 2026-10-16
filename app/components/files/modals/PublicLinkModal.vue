@@ -225,11 +225,13 @@ const viewModeItems = [
 ]
 const linkPermissions = ref({
   allowFileUpload: false,
+  allowTextFileEdit: false,
   allowFolderCreation: false
 })
 
 const permissionItems = [
   { label: 'Allow file upload', value: 'allowFileUpload' },
+  { label: 'Allow text file edit', value: 'allowTextFileEdit' },
   { label: 'Allow folder creation', value: 'allowFolderCreation' }
 ]
 
@@ -258,12 +260,14 @@ const linkPermissionsSelected = computed({
     const p = linkPermissions.value
     return [
       ...(p.allowFileUpload ? ['allowFileUpload'] : []),
+      ...(p.allowTextFileEdit ? ['allowTextFileEdit'] : []),
       ...(p.allowFolderCreation ? ['allowFolderCreation'] : [])
     ]
   },
   set: (val: string[]) => {
     linkPermissions.value = {
       allowFileUpload: val.includes('allowFileUpload'),
+      allowTextFileEdit: val.includes('allowTextFileEdit'),
       allowFolderCreation: val.includes('allowFolderCreation')
     }
   }
@@ -333,6 +337,7 @@ const generateDraftLink = async () => {
       props.path || '',
       {
         allowFileUpload: linkPermissions.value.allowFileUpload,
+        allowTextFileEdit: linkPermissions.value.allowTextFileEdit,
         allowFolderCreation: linkPermissions.value.allowFolderCreation
       },
       { draft: true }
@@ -356,6 +361,7 @@ const saveLink = async () => {
     try {
       const link = await updatePublicLink(props.editLink.id, {
         allowFileUpload: linkPermissions.value.allowFileUpload,
+        allowTextFileEdit: linkPermissions.value.allowTextFileEdit,
         allowFolderCreation: linkPermissions.value.allowFolderCreation,
         expiresAt: expiresAtDate.value ? computeExpiresAt(expiresAtDate.value) : null
       })
@@ -393,6 +399,7 @@ const saveLink = async () => {
       props.path || '',
       {
         allowFileUpload: linkPermissions.value.allowFileUpload,
+        allowTextFileEdit: linkPermissions.value.allowTextFileEdit,
         allowFolderCreation: linkPermissions.value.allowFolderCreation,
         expiresAt: computeExpiresAt(expiresAtDate.value)
       },
@@ -480,6 +487,7 @@ watch(isOpen, (open) => {
       linkHash.value = props.editLink.hash
       linkPermissions.value = {
         allowFileUpload: props.editLink.allowFileUpload ?? false,
+        allowTextFileEdit: props.editLink.allowTextFileEdit ?? false,
         allowFolderCreation: props.editLink.allowFolderCreation ?? false
       }
       expiresAtDate.value = props.editLink.expiresAt
@@ -490,6 +498,7 @@ watch(isOpen, (open) => {
       expiresAtDate.value = ''
       linkPermissions.value = {
         allowFileUpload: false,
+        allowTextFileEdit: false,
         allowFolderCreation: false
       }
     }
@@ -517,6 +526,7 @@ watch(() => props.editLink, (link) => {
     linkHash.value = link.hash
     linkPermissions.value = {
       allowFileUpload: link.allowFileUpload ?? false,
+      allowTextFileEdit: link.allowTextFileEdit ?? false,
       allowFolderCreation: link.allowFolderCreation ?? false
     }
     expiresAtDate.value = link.expiresAt ? link.expiresAt.slice(0, 10) : ''

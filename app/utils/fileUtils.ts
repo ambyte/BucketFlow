@@ -69,7 +69,11 @@ export function isPDF(file: FileItem | null): boolean {
  */
 export function isTextFile(file: FileItem | null): boolean {
   if (!file) return false
-  const ext = file.name.split('.').pop()?.toLowerCase() || ''
+  return isTextFileName(file.name)
+}
+
+export function isTextFileName(name: string): boolean {
+  const ext = name.split('.').pop()?.toLowerCase() || ''
   const textExtensions = [
     'txt', 'md', 'json', 'js', 'ts', 'jsx', 'tsx', 'vue', 'html', 'htm', 'css', 'scss', 'sass',
     'less', 'xml', 'yaml', 'yml', 'ini', 'conf', 'config', 'log', 'sh', 'bash', 'zsh', 'fish',

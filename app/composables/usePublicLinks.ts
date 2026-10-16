@@ -10,6 +10,7 @@ export function usePublicLinks(ctx: AppContext) {
     path: string = '',
     options?: {
       allowFileUpload?: boolean
+      allowTextFileEdit?: boolean
       allowFolderCreation?: boolean
       expiresAt?: string
     },
@@ -26,6 +27,7 @@ export function usePublicLinks(ctx: AppContext) {
         bucketName,
         path,
         allowFileUpload: options?.allowFileUpload ?? false,
+        allowTextFileEdit: options?.allowTextFileEdit ?? false,
         allowFolderCreation: options?.allowFolderCreation ?? false,
         expiresAt: options?.expiresAt,
         hash: requestOptions?.hash,
@@ -50,7 +52,7 @@ export function usePublicLinks(ctx: AppContext) {
 
   const updatePublicLink = async (
     id: string,
-    updates: { allowFileUpload?: boolean, allowFolderCreation?: boolean, expiresAt?: string | null }
+    updates: { allowFileUpload?: boolean, allowTextFileEdit?: boolean, allowFolderCreation?: boolean, expiresAt?: string | null }
   ): Promise<PublicLink | null> => {
     if (isPublic) {
       throw new Error('Update public link is not available in public mode')
@@ -79,6 +81,7 @@ export function usePublicLinks(ctx: AppContext) {
     bucket: string
     path: string
     allowFileUpload: boolean
+    allowTextFileEdit: boolean
     allowFolderCreation: boolean
   } | null> => {
     if (!isPublic) {
@@ -93,6 +96,7 @@ export function usePublicLinks(ctx: AppContext) {
         bucket: response.bucket,
         path: response.path,
         allowFileUpload: response.allowFileUpload ?? false,
+        allowTextFileEdit: response.allowTextFileEdit ?? false,
         allowFolderCreation: response.allowFolderCreation ?? false
       }
     } catch (err: unknown) {

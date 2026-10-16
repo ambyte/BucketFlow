@@ -20,6 +20,7 @@
         :initial-path="initialFolderPath"
         :read-only="true"
         :allow-upload="allowFileUpload"
+        :allow-text-file-edit="allowTextFileEdit"
         :allow-folder-creation="allowFolderCreation"
         :class="isPageView ? 'flex-1 min-h-0' : 'h-screen'"
       />
@@ -50,6 +51,7 @@ const linkHash = ref('')
 const selectedBucketName = ref<string | undefined>(undefined)
 const initialFolderPath = ref('')
 const allowFileUpload = ref(false)
+const allowTextFileEdit = ref(false)
 const allowFolderCreation = ref(false)
 const isReady = ref(false)
 const errorTitle = ref('Invalid link')
@@ -114,6 +116,7 @@ onMounted(async () => {
     selectedBucketName.value = resolved.bucket
     initialFolderPath.value = resolved.path || ''
     allowFileUpload.value = resolved.allowFileUpload
+    allowTextFileEdit.value = resolved.allowTextFileEdit
     allowFolderCreation.value = resolved.allowFolderCreation
 
     isReady.value = true

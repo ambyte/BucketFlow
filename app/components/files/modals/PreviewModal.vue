@@ -33,17 +33,56 @@
           v-else-if="isText && textContent !== null"
           class="w-full max-h-[60vh] overflow-auto"
         >
-          <div class="flex justify-end pb-2">
+          <div class="flex items-center justify-between gap-2 pb-2">
+            <div class="flex items-center gap-2">
+              <template v-if="editing">
+                <UButton
+                  icon="i-heroicons-check"
+                  color="primary"
+                  size="sm"
+                  :loading="saving"
+                  :disabled="saving || draftText === textContent"
+                  @click="emit('save', draftText)"
+                >
+                  Save
+                </UButton>
+                <UButton
+                  variant="ghost"
+                  size="sm"
+                  :disabled="saving"
+                  @click="cancelEditing"
+                >
+                  Cancel
+                </UButton>
+              </template>
+              <UButton
+                v-else-if="editable"
+                icon="i-heroicons-pencil-square"
+                variant="soft"
+                size="sm"
+                @click="editing = true"
+              >
+                Edit
+              </UButton>
+            </div>
             <UButton
               icon="i-heroicons-clipboard"
               variant="soft"
               size="sm"
-              @click="copyTextContent"
+              @click="copyTextContent(editing ? draftText : textContent)"
             >
-              Copy text
+              Copy
             </UButton>
           </div>
+          <textarea
+            v-if="editing"
+            v-model="draftText"
+            class="w-full h-[60vh] p-4 bg-elevated rounded-lg text-sm text-highlighted font-mono whitespace-pre-wrap wrap-break-word resize-y focus-visible:outline-primary"
+            :disabled="saving"
+            :aria-label="`Edit ${fileName}`"
+          />
           <pre
+            v-else
             class="p-4 bg-elevated rounded-lg text-sm text-highlighted font-mono whitespace-pre-wrap wrap-break-word"
           ><code>{{ textContent }}</code></pre>
         </div>
@@ -78,6 +117,8 @@ interface Props {
   fileName: string
   previewUrl: string | null
   textContent: string | null
+  editable: boolean
+  saving: boolean
   loading: boolean
   isImage: boolean
   isPdf: boolean
@@ -90,18 +131,36 @@ const toast = useToast()
 const emit = defineEmits<{
   'update:open': [value: boolean]
   'download': []
+  'save': [content: string]
 }>()
+
+const editing = ref(false)
+const draftText = ref('')
+
+watch([() => props.open, () => props.textContent], () => {
+  draftText.value = props.textContent ?? ''
+  editing.value = false
+})
+
+watch(() => props.editable, (editable) => {
+  if (!editable) cancelEditing()
+})
 
 const isOpen = computed({
   get: () => props.open,
   set: value => emit('update:open', value)
 })
 
-const copyTextContent = async () => {
-  if (props.textContent === null) return
+const cancelEditing = () => {
+  draftText.value = props.textContent ?? ''
+  editing.value = false
+}
+
+const copyTextContent = async (text: string | null) => {
+  if (text === null) return
 
   try {
-    await navigator.clipboard.writeText(props.textContent)
+    await navigator.clipboard.writeText(text)
     toast.add({
       title: 'Copied',
       description: 'Text copied to clipboard',

@@ -41,6 +41,7 @@ export default defineEventHandler(async (event) => {
     bucket: link.bucketName,
     path: link.path || "",
     allowFileUpload: link.allowFileUpload ?? false,
+    allowTextFileEdit: link.allowTextFileEdit ?? false,
     allowFolderCreation: link.allowFolderCreation ?? false,
   };
 });
