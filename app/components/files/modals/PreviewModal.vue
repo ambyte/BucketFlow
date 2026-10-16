@@ -74,16 +74,18 @@
               Copy
             </UButton>
           </div>
-          <div class="min-h-0 flex-1 overflow-auto">
-            <textarea
-              v-if="editing"
-              v-model="draftText"
-              class="w-full h-[60vh] p-4 bg-elevated rounded-lg text-sm text-highlighted font-mono whitespace-pre-wrap wrap-break-word resize-y focus-visible:outline-primary"
-              :disabled="saving"
-              :aria-label="`Edit ${fileName}`"
-            />
+          <textarea
+            v-if="editing"
+            v-model="draftText"
+            class="block w-full h-[60vh] min-h-0 overflow-auto p-4 bg-elevated rounded-lg text-sm text-highlighted font-mono whitespace-pre-wrap wrap-break-word resize-none focus-visible:outline-primary"
+            :disabled="saving"
+            :aria-label="`Edit ${fileName}`"
+          />
+          <div
+            v-else
+            class="min-h-0 flex-1 overflow-auto"
+          >
             <pre
-              v-else
               class="p-4 bg-elevated rounded-lg text-sm text-highlighted font-mono whitespace-pre-wrap wrap-break-word"
             ><code>{{ textContent }}</code></pre>
           </div>
